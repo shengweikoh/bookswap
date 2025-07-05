@@ -163,7 +163,7 @@ export default function MyListings() {
                 {/* Book Image */}
                 <div className="aspect-[3/4] bg-gray-700 relative">
                   <Image
-                    src={book.image || "/placeholder.svg?height=300&width=225"}
+                    src={book.image || "/images/books/placeholder.svg"}
                     alt={book.title}
                     fill
                     className="object-cover"

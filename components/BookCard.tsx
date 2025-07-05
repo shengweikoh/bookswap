@@ -31,7 +31,7 @@ export default function BookCard({ book }: BookCardProps) {
       <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
         <div className="aspect-[3/4] bg-gray-200">
           <Image
-            src={book.image || "/placeholder.svg?height=300&width=225"}
+            src={book.image || "/images/books/placeholder.svg"}
             alt={book.title}
             width={225}
             height={300}

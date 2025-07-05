@@ -141,7 +141,7 @@ export default function ListingDetails() {
             <div className="flex justify-center lg:justify-start">
               <div className="relative">
                 <Image
-                  src={book.image || "/placeholder.svg?height=400&width=300"}
+                  src={book.image || "/images/books/placeholder.svg"}
                   alt={book.title}
                   width={300}
                   height={400}
@@ -189,7 +189,7 @@ export default function ListingDetails() {
                 <h3 className="text-lg font-semibold text-white mb-3">Owner Information</h3>
                 <div className="flex items-center space-x-4 mb-4">
                   <Image
-                    src={book.image || "/placeholder.svg"}
+                    src={book.image || "/images/avatars/default-avatar.svg"}
                     alt={book.owner}
                     width={60}
                     height={60}
@@ -265,7 +265,7 @@ export default function ListingDetails() {
                 >
                   <div className="aspect-[3/4] bg-gray-700 rounded-md mb-3">
                     <Image
-                      src={ownerBook.image || "/placeholder.svg"}
+                      src={ownerBook.image || "/images/books/placeholder.svg"}
                       alt={ownerBook.title}
                       width={150}
                       height={200}

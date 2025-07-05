@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { X, Send, Paperclip, Smile } from "lucide-react"
 import Image from "next/image"
@@ -10,7 +9,7 @@ interface ChatModalProps {
   isOpen: boolean
   onClose: () => void
   ownerName: string
-  ownerAvatar: string
+  ownerAvatar: string | null
   bookTitle: string
 }
 
@@ -78,7 +77,7 @@ export default function ChatModal({ isOpen, onClose, ownerName, ownerAvatar, boo
           <div className="flex items-center justify-between p-4 border-b border-gray-700">
             <div className="flex items-center space-x-3">
               <Image
-                src={ownerAvatar || "/placeholder.svg"}
+                src={ownerAvatar || "/images/avatars/default-avatar.svg"}
                 alt={ownerName}
                 width={40}
                 height={40}

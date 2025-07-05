@@ -16,7 +16,7 @@ export async function seedDatabase() {
         name: "John Smith",
         email: "john@example.com",
         password: hashedPassword,
-        avatar: "/placeholder.svg?height=120&width=120",
+        avatar: null,
         interestedGenres: ["Science Fiction", "Fantasy", "Mystery"],
         birthday: "1990-05-15",
         location: "San Francisco, CA",
@@ -30,7 +30,7 @@ export async function seedDatabase() {
         name: "Jane Doe",
         email: "jane@example.com",
         password: hashedPassword,
-        avatar: "/placeholder.svg?height=120&width=120",
+        avatar: null,
         interestedGenres: ["Classic Literature", "Romance"],
         location: "New York, NY",
       },
@@ -43,7 +43,7 @@ export async function seedDatabase() {
         name: "Sarah Wilson",
         email: "sarah@example.com",
         password: hashedPassword,
-        avatar: "/placeholder.svg?height=120&width=120",
+        avatar: null,
         interestedGenres: ["Contemporary Fiction", "Self-Help"],
         location: "Los Angeles, CA",
       },
@@ -56,7 +56,7 @@ export async function seedDatabase() {
         name: "Mike Johnson",
         email: "mike@example.com",
         password: hashedPassword,
-        avatar: "/placeholder.svg?height=120&width=120",
+        avatar: null,
         interestedGenres: ["Biography", "History"],
         location: "Chicago, IL",
       },
@@ -74,7 +74,7 @@ export async function seedDatabase() {
         condition: "Good" as const,
         description: "A masterpiece of American literature that captures the essence of the Jazz Age. This classic novel follows the mysterious Jay Gatsby and his obsession with the beautiful Daisy Buchanan.",
         ownerId: user1.id,
-        image: "/placeholder.svg?height=300&width=225",
+        image: null,
         isAvailable: true,
       },
       {
@@ -85,7 +85,7 @@ export async function seedDatabase() {
         condition: "New" as const,
         description: "A gripping tale of racial injustice and childhood innocence in the American South. This powerful novel explores themes of morality, prejudice, and the loss of innocence.",
         ownerId: user2.id,
-        image: "/placeholder.svg?height=300&width=225",
+        image: null,
         isAvailable: true,
       },
       {
@@ -96,7 +96,7 @@ export async function seedDatabase() {
         condition: "Good" as const,
         description: "Epic space opera about politics and ecology on the desert planet Arrakis. A masterwork of science fiction that explores themes of power, religion, and environmental consciousness.",
         ownerId: user1.id,
-        image: "/placeholder.svg?height=300&width=225",
+        image: null,
         isAvailable: true,
       },
       {
@@ -107,7 +107,7 @@ export async function seedDatabase() {
         condition: "New" as const,
         description: "A captivating novel about a reclusive Hollywood icon who finally decides to tell her story to an unknown journalist.",
         ownerId: user3.id,
-        image: "/placeholder.svg?height=300&width=225",
+        image: null,
         isAvailable: true,
       },
       {
@@ -118,7 +118,7 @@ export async function seedDatabase() {
         condition: "Good" as const,
         description: "Transform your life with tiny changes in this practical guide to building good habits and breaking bad ones.",
         ownerId: user4.id,
-        image: "/placeholder.svg?height=300&width=225",
+        image: null,
         isAvailable: true,
       },
       {
@@ -129,7 +129,7 @@ export async function seedDatabase() {
         condition: "Good" as const,
         description: "A novel about infinite possibilities and the lives we might have lived. Between life and death there is a library.",
         ownerId: user3.id,
-        image: "/placeholder.svg?height=300&width=225",
+        image: null,
         isAvailable: true,
       },
       {
@@ -140,7 +140,7 @@ export async function seedDatabase() {
         condition: "Worn" as const,
         description: "A powerful memoir about education, family, and the struggle for self-invention. A coming-of-age story that is both heartbreaking and inspiring.",
         ownerId: user4.id,
-        image: "/placeholder.svg?height=300&width=225",
+        image: null,
         isAvailable: true,
       },
       {
@@ -151,7 +151,7 @@ export async function seedDatabase() {
         condition: "Good" as const,
         description: "A dystopian masterpiece about totalitarianism and the power of language. More relevant today than ever before.",
         ownerId: user2.id,
-        image: "/placeholder.svg?height=300&width=225",
+        image: null,
         isAvailable: false, // This one is being exchanged
       },
     ];

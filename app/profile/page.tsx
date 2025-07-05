@@ -125,7 +125,7 @@ export default function Profile() {
           <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
             <div className="relative">
               <Image
-                src={userData.avatar || "/placeholder.svg"}
+                src={userData.avatar || "/images/avatars/default-avatar.svg"}
                 alt={userData.name}
                 width={120}
                 height={120}

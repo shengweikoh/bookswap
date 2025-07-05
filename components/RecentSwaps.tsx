@@ -60,7 +60,7 @@ export default function RecentSwaps() {
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-3">
                   <Image
-                    src={swap.requester?.avatar || "/placeholder.svg"}
+                    src={swap.requester?.avatar || "/images/avatars/default-avatar.svg"}
                     alt={swap.requester?.name || "User"}
                     width={40}
                     height={40}
@@ -78,7 +78,7 @@ export default function RecentSwaps() {
 
                 <div className="flex items-center space-x-3">
                   <Image
-                    src={swap.owner?.avatar || "/placeholder.svg"}
+                    src={swap.owner?.avatar || "/images/avatars/default-avatar.svg"}
                     alt={swap.owner?.name || "Owner"}
                     width={40}
                     height={40}

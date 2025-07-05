@@ -72,7 +72,7 @@ export default function LatestPostings() {
           >
             <div className="flex items-center space-x-4">
               <Image
-                src={book.image || "/placeholder.svg"}
+                src={book.image || "/images/books/placeholder.svg"}
                 alt={book.title}
                 width={60}
                 height={80}
