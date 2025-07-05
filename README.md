@@ -149,8 +149,11 @@ bookswap/
 │   └── pages/           # App pages
 ├── components/          # Reusable UI components
 ├── lib/                 # Utility functions and services
+│   ├── seed.ts          # Database seeding functions
+│   └── ...              # Other utility files
 ├── prisma/              # Database schema and migrations
-│   ├── schema.prisma    # Database schema
+│   └── schema.prisma    # Database schema
+├── scripts/             # Utility scripts
 │   └── seed.ts          # Database seeding script
 └── README.md           # This file
 ```
@@ -163,13 +166,44 @@ bookswap/
 # Access the database directly
 docker compose exec db psql -U bookswap_user -d bookswap_db
 
-# Reset database (careful - this deletes all data!)
+# Seed database with sample data
+docker compose exec app npm run seed
+
+# Reset database (clear and reseed)
+docker compose exec app npm run seed:reset
+
+# Clear all database data
+docker compose exec app npm run seed:clear
+
+# Reset database schema (careful - this deletes all data!)
 docker compose exec app npx prisma db push --force-reset
-docker compose exec app npx prisma db seed
 
 # Generate Prisma client after schema changes
 docker compose exec app npx prisma generate
 ```
+
+### Database Seeding
+
+The application includes a comprehensive seeding system with sample data:
+
+```bash
+# Available seeding commands:
+npm run seed        # Add sample data to existing database
+npm run seed:reset  # Clear database and add fresh sample data  
+npm run seed:clear  # Remove all data from database
+```
+
+**Sample Data Includes:**
+- 4 sample users with different reading preferences
+- 8 books across various genres and conditions
+- Exchange requests in different states
+- Notification examples
+
+**Sample Login Credentials:**
+- `john@example.com` / `password123`
+- `jane@example.com` / `password123`
+- `sarah@example.com` / `password123`
+- `mike@example.com` / `password123`
 
 ### Useful Commands
 

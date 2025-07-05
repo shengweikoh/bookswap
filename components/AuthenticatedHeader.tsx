@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { BookOpen, User, Plus, Search, LogOut } from "lucide-react"
+import { BookOpen, User, Plus, Search, LogOut, List } from "lucide-react"
 import NotificationDropdown from "./NotificationDropdown"
 import { apiService } from "@/lib/api"
 
@@ -48,6 +48,10 @@ export default function AuthenticatedHeader() {
             <Link href="/add-book" className={`flex items-center space-x-1 px-3 py-2 ${isActive("/add-book")}`}>
               <Plus className="h-4 w-4" />
               <span>Add Book</span>
+            </Link>
+            <Link href="/my-listings" className={`flex items-center space-x-1 px-3 py-2 ${isActive("/my-listings")}`}>
+              <List className="h-4 w-4" />
+              <span>My Postings</span>
             </Link>
             <Link href="/profile" className={`flex items-center space-x-1 px-3 py-2 ${isActive("/profile")}`}>
               <User className="h-4 w-4" />
