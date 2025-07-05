@@ -32,15 +32,41 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 })
     }
 
+    // In a chat context, both users should be able to request exchange
+    // If the book owner requests exchange, they're indicating willingness to exchange
+    // If a non-owner requests exchange, they're asking for the book
+    
+    // Create exchange request with appropriate role assignment
+    let requesterId, ownerId;
+    
     if (book.ownerId === userId) {
-      return NextResponse.json({ error: "Cannot request exchange for your own book" }, { status: 400 })
+      // Book owner is initiating the exchange (offering their book)
+      requesterId = userId;
+      ownerId = userId;
+      console.log('Debug: Book owner initiating exchange request', {
+        bookId,
+        bookOwnerId: book.ownerId,
+        requesterId: userId,
+        scenario: 'owner_requesting'
+      });
+    } else {
+      // Non-owner is requesting the book
+      requesterId = userId;
+      ownerId = book.ownerId;
+      console.log('Debug: Non-owner requesting exchange', {
+        bookId,
+        bookOwnerId: book.ownerId,
+        requesterId: userId,
+        scenario: 'requester_asking'
+      });
     }
 
     // Check if exchange request already exists
     const existingRequest = await prisma.exchangeRequest.findFirst({
       where: {
         bookId: bookId,
-        requesterId: userId,
+        requesterId: requesterId,
+        ownerId: ownerId,
         status: "pending"
       }
     })
@@ -53,28 +79,44 @@ export async function POST(request: NextRequest) {
     const exchangeRequest = await prisma.exchangeRequest.create({
       data: {
         bookId,
-        requesterId: userId,
-        ownerId: book.ownerId,
+        requesterId,
+        ownerId,
         status: "pending",
       }
     })
 
     // Get requester info for notification
     const requester = await prisma.user.findUnique({
-      where: { id: userId }
+      where: { id: requesterId }
     })
 
-    // Create notification for book owner
-    await prisma.notification.create({
-      data: {
-        userId: book.ownerId,
-        title: "Exchange Request Received",
-        message: `${requester?.name} wants to exchange "${book.title}" with your book`,
-        type: "exchange",
-        isRead: false,
-        relatedId: exchangeRequest.id,
-      }
-    })
+    // Create notification based on scenario
+    if (book.ownerId === userId) {
+      // Book owner initiated - notify other users in the chat about owner's willingness to exchange
+      // For now, we'll create a general notification to the owner (could be expanded to notify chat participants)
+      await prisma.notification.create({
+        data: {
+          userId: ownerId,
+          title: "Exchange Request Created",
+          message: `You indicated willingness to exchange "${book.title}"`,
+          type: "exchange",
+          isRead: false,
+          relatedId: exchangeRequest.id,
+        }
+      })
+    } else {
+      // Non-owner requested - notify the book owner
+      await prisma.notification.create({
+        data: {
+          userId: ownerId,
+          title: "Exchange Request Received",
+          message: `${requester?.name} wants to exchange "${book.title}" with your book`,
+          type: "exchange",
+          isRead: false,
+          relatedId: exchangeRequest.id,
+        }
+      })
+    }
 
     return NextResponse.json(exchangeRequest)
   } catch (error) {

@@ -19,16 +19,32 @@ interface Message {
   isRead: boolean
 }
 
+interface ExchangeRequest {
+  id: string
+  bookId: string
+  requesterId: string
+  ownerId: string
+  status: 'pending' | 'accepted' | 'rejected'
+  createdAt: Date
+}
+
 function MyChatContent() {
-  const { user } = useAuth()
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const searchParams = useSearchParams()
   const [chats, setChats] = useState<Chat[]>([])
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
+  const [messagesLoading, setMessagesLoading] = useState(false)
   const [newMessage, setNewMessage] = useState("")
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [showChatList, setShowChatList] = useState(true)
+  const [exchangeRequest, setExchangeRequest] = useState<ExchangeRequest | null>(null)
+  const [exchangeRequestLoading, setExchangeRequestLoading] = useState(false)
+  const [chatDataReady, setChatDataReady] = useState(false)
+  const [userDataValidated, setUserDataValidated] = useState(false)
+  const [conversationSwitching, setConversationSwitching] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Get chat parameters from URL (when coming from listing page or chat dropdown)
@@ -37,14 +53,65 @@ function MyChatContent() {
   const chatId = searchParams.get("chatId")
 
   useEffect(() => {
-    fetchChats()
-  }, [user]) // Add user as dependency
+    // Only fetch chats when authentication is complete and user is authenticated
+    if (!authLoading && isAuthenticated && user) {
+      fetchChats()
+    } else if (!authLoading && !isAuthenticated) {
+      // Authentication complete but user is not authenticated, stop loading
+      setLoading(false)
+    }
+    // Don't do anything if authLoading is true (still checking authentication)
+  }, [authLoading, isAuthenticated, user])
 
   useEffect(() => {
-    if (selectedChat) {
-      fetchMessages(selectedChat.id)
+    if (selectedChat && isAuthenticated && user) {
+      // Mark conversation as switching and data as not ready
+      setConversationSwitching(true)
+      setChatDataReady(false)
+      setUserDataValidated(false)
+      
+      // Clear existing data when switching chats to prevent showing stale data
+      setMessages([])
+      setExchangeRequest(null)
+      setExchangeRequestLoading(false)
+      
+      // Step 1: Validate user data is properly loaded
+      const validateUserData = async () => {
+        try {
+          // Double-check that user data is complete and consistent
+          if (!user.id || !isAuthenticated) {
+            throw new Error('User data incomplete')
+          }
+          
+          // Add a small delay to ensure user state is stable
+          await new Promise(resolve => setTimeout(resolve, 50))
+          
+          setUserDataValidated(true)
+          
+          // Step 2: After user validation, fetch chat data
+          await Promise.all([
+            fetchMessages(selectedChat.id),
+            fetchExchangeRequest(selectedChat.bookId)
+          ])
+          
+        } catch (error) {
+          console.error('Error during conversation switch:', error)
+        } finally {
+          // Mark all data as ready
+          setChatDataReady(true)
+          setConversationSwitching(false)
+        }
+      }
+      
+      validateUserData()
+      
+    } else {
+      // Reset states when no chat is selected
+      setChatDataReady(false)
+      setUserDataValidated(false)
+      setConversationSwitching(false)
     }
-  }, [selectedChat])
+  }, [selectedChat, isAuthenticated, user])
 
   useEffect(() => {
     scrollToBottom()
@@ -53,9 +120,11 @@ function MyChatContent() {
   const fetchChats = async () => {
     try {
       setLoading(true)
+      setError(null)
       
-      // Check if user is authenticated
-      if (!user) {
+      // Ensure user is authenticated before making API calls
+      if (!isAuthenticated || !user) {
+        console.log('User not authenticated, skipping chat fetch')
         setLoading(false)
         return
       }
@@ -70,6 +139,7 @@ function MyChatContent() {
         if (response.status === 401) {
           // User is not authenticated, redirect to login
           console.error('User not authenticated')
+          setLoading(false)
           return
         }
         throw new Error('Failed to fetch chats')
@@ -130,13 +200,30 @@ function MyChatContent() {
       }
     } catch (error) {
       console.error("Failed to fetch chats:", error)
+      setError("Failed to load chats. Please try again.")
     } finally {
       setLoading(false)
     }
   }
 
+  const retryFetch = () => {
+    fetchChats()
+  }
+
   const fetchMessages = async (chatId: string) => {
+    if (!chatId || !isAuthenticated || !user) {
+      console.log('Invalid chatId or user not authenticated, skipping message fetch')
+      return
+    }
+
+    // Ensure user data is validated before proceeding
+    if (!userDataValidated && !conversationSwitching) {
+      return
+    }
+
     try {
+      setMessagesLoading(true)
+      
       // Fetch messages from API
       const response = await fetch(`/api/chats/${chatId}`, {
         method: 'GET',
@@ -148,6 +235,13 @@ function MyChatContent() {
       }
 
       const messagesData = await response.json()
+      
+      // Ensure messagesData is an array before processing
+      if (!Array.isArray(messagesData)) {
+        console.error('Invalid messages data received:', messagesData)
+        setMessages([])
+        return
+      }
       
       // Convert API response to Message objects (dates come as strings)
       const fetchedMessages: Message[] = messagesData.map((message: any) => ({
@@ -162,6 +256,59 @@ function MyChatContent() {
       setMessages(fetchedMessages)
     } catch (error) {
       console.error("Failed to fetch messages:", error)
+      setMessages([]) // Set empty array on error to prevent rendering issues
+    } finally {
+      setMessagesLoading(false)
+    }
+  }
+
+  const fetchExchangeRequest = async (bookId: string) => {
+    if (!bookId || !isAuthenticated || !user) {
+      console.log('Invalid bookId or user not authenticated, skipping exchange request fetch')
+      setExchangeRequest(null)
+      return
+    }
+
+    // Ensure user data is validated before proceeding
+    if (!userDataValidated && !conversationSwitching) {
+      return
+    }
+
+    try {
+      setExchangeRequestLoading(true)
+      
+      // Fetch exchange request from API
+      const response = await fetch(`/api/exchanges/requests?bookId=${bookId}`, {
+        method: 'GET',
+        credentials: 'include',
+      })
+
+      if (response.ok) {
+        const exchangeData = await response.json()
+        if (Array.isArray(exchangeData) && exchangeData.length > 0) {
+          // Find the most recent exchange request for this book
+          const latestRequest = exchangeData.find((req: any) => req.status === 'pending') || exchangeData[0]
+          const exchangeRequestData = {
+            id: latestRequest.id,
+            bookId: latestRequest.bookId,
+            requesterId: latestRequest.requesterId,
+            ownerId: latestRequest.ownerId,
+            status: latestRequest.status,
+            createdAt: new Date(latestRequest.createdAt)
+          }
+          
+          setExchangeRequest(exchangeRequestData)
+        } else {
+          setExchangeRequest(null)
+        }
+      } else {
+        setExchangeRequest(null)
+      }
+    } catch (error) {
+      console.error("Failed to fetch exchange request:", error)
+      setExchangeRequest(null)
+    } finally {
+      setExchangeRequestLoading(false)
     }
   }
 
@@ -191,8 +338,8 @@ function MyChatContent() {
       const message: Message = {
         id: messageData.id,
         chatId: selectedChat.id,
-        senderId: user?.id || "me",
-        content: newMessage.trim(),
+        senderId: messageData.senderId, // Use the senderId from API response
+        content: messageData.message,   // Use the message from API response
         timestamp: new Date(messageData.createdAt),
         isRead: messageData.isRead,
       }
@@ -203,11 +350,11 @@ function MyChatContent() {
       // Update chat's last message
       const updatedChats = chats.map(chat => 
         chat.id === selectedChat.id 
-          ? { ...chat, lastMessage: newMessage.trim(), lastMessageTime: new Date() }
+          ? { ...chat, lastMessage: messageData.message, lastMessageTime: new Date() }
           : chat
       )
       setChats(updatedChats)
-      setSelectedChat({ ...selectedChat, lastMessage: newMessage.trim(), lastMessageTime: new Date() })
+      setSelectedChat({ ...selectedChat, lastMessage: messageData.message, lastMessageTime: new Date() })
 
     } catch (error) {
       console.error("Failed to send message:", error)
@@ -219,15 +366,218 @@ function MyChatContent() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
-  const filteredChats = chats.filter(chat =>
-    chat.otherUserName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    chat.bookTitle.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredChats = chats.filter(chat => {
+    // Add defensive checks to prevent errors
+    if (!chat || !chat.otherUserName || !chat.bookTitle) return false
+    
+    return (
+      chat.otherUserName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      chat.bookTitle.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  })
 
-  if (loading) {
+  const handleExchangeRequest = async () => {
+    if (!selectedChat || !isAuthenticated || !user) return
+
+    try {
+      const response = await fetch('/api/exchanges/request', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bookId: selectedChat.bookId,
+        }),
+      })
+
+      if (response.ok) {
+        // Refresh the exchange request to get the updated state
+        await fetchExchangeRequest(selectedChat.bookId)
+      } else {
+        const errorData = await response.json()
+        console.error('Failed to send exchange request:', errorData.error)
+      }
+    } catch (error) {
+      console.error('Error sending exchange request:', error)
+    }
+  }
+
+  const handleAcceptExchange = async () => {
+    if (!exchangeRequest) return
+
+    try {
+      const response = await fetch(`/api/exchanges/requests/${exchangeRequest.id}/accept`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        // Refresh the exchange request to get the updated state
+        await fetchExchangeRequest(selectedChat?.bookId || '')
+      } else {
+        const errorData = await response.json()
+        console.error('Failed to accept exchange request:', errorData.error)
+      }
+    } catch (error) {
+      console.error('Error accepting exchange request:', error)
+    }
+  }
+
+  const handleRejectExchange = async () => {
+    if (!exchangeRequest) return
+
+    try {
+      const response = await fetch(`/api/exchanges/requests/${exchangeRequest.id}/reject`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        // Refresh the exchange request to get the updated state
+        await fetchExchangeRequest(selectedChat?.bookId || '')
+      } else {
+        const errorData = await response.json()
+        console.error('Failed to reject exchange request:', errorData.error)
+      }
+    } catch (error) {
+      console.error('Error rejecting exchange request:', error)
+    }
+  }
+
+  const renderExchangeButtons = () => {
+    if (!selectedChat || !isAuthenticated || !user || !selectedChat.bookId) return null
+
+    // Show loading spinner while user data is being validated or chat data is being fetched
+    if (conversationSwitching || !userDataValidated || exchangeRequestLoading || !chatDataReady) {
+      return (
+        <div className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-gray-600 text-white rounded-lg">
+          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+          <span>Loading...</span>
+        </div>
+      )
+    }
+
+    // No exchange request exists - show Request Exchange button
+    if (!exchangeRequest) {
+      return (
+        <button
+          onClick={handleExchangeRequest}
+          className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <span>Request Exchange</span>
+        </button>
+      )
+    }
+
+    // Exchange request exists - show different buttons based on status and user role
+    const isRequester = exchangeRequest.requesterId === user.id
+    const bookOwnerInitiated = exchangeRequest.requesterId === exchangeRequest.ownerId
+    
+    // Determine who can accept/reject:
+    // - If book owner initiated: Other user (non-owner) can accept/reject
+    // - If non-owner initiated: Book owner can accept/reject
+    const canAcceptReject = bookOwnerInitiated ? !isRequester : (exchangeRequest.ownerId === user.id)
+
+    switch (exchangeRequest.status) {
+      case 'pending':
+        if (isRequester) {
+          // User who initiated the request sees yellow "Exchange Requested" button
+          return (
+            <button
+              disabled
+              className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-yellow-600 text-white rounded-lg cursor-not-allowed"
+            >
+              <span>Exchange Requested</span>
+            </button>
+          )
+        } else if (canAcceptReject) {
+          // User who can accept/reject sees Accept/Reject buttons
+          return (
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleAcceptExchange}
+                className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <span>Accept Exchange</span>
+              </button>
+              <button
+                onClick={handleRejectExchange}
+                className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <span>Reject Exchange</span>
+              </button>
+            </div>
+          )
+        }
+        break
+
+      case 'accepted':
+        return (
+          <button
+            disabled
+            className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-green-600 text-white rounded-lg cursor-not-allowed"
+          >
+            <span>Exchange Accepted</span>
+          </button>
+        )
+
+      case 'rejected':
+        return (
+          <button
+            disabled
+            className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-red-600 text-white rounded-lg cursor-not-allowed"
+          >
+            <span>Exchange Rejected</span>
+          </button>
+        )
+
+      default:
+        return null
+    }
+
+    return null
+  }
+
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white">Loading chats...</div>
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
+          <p>{authLoading ? 'Authenticating...' : 'Loading chats...'}</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-center">
+          <p>Please log in to access your chats</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-center">
+          <p className="text-red-400 mb-4">{error}</p>
+          <button
+            onClick={retryFetch}
+            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     )
   }
@@ -333,7 +683,7 @@ function MyChatContent() {
             {/* Chat Interface - Right Side */}
             <div className={`lg:col-span-2 flex flex-col h-full ${
               showChatList ? 'hidden lg:flex' : ''
-            }`}>
+            }`} key={selectedChat?.id || 'no-chat'}>
               {selectedChat ? (
                 <>
                   {/* Chat Header */}
@@ -355,8 +705,8 @@ function MyChatContent() {
                           className="rounded-full"
                         />
                         <div>
-                          <h3 className="font-medium text-white">{selectedChat.otherUserName}</h3>
-                          <p className="text-sm text-gray-400">About: {selectedChat.bookTitle}</p>
+                          <h3 className="font-medium text-white">{selectedChat.otherUserName || 'Unknown User'}</h3>
+                          <p className="text-sm text-gray-400">About: {selectedChat.bookTitle || 'Unknown Book'}</p>
                         </div>
                       </div>
                       
@@ -368,67 +718,57 @@ function MyChatContent() {
                         >
                           <span>View Listing</span>
                         </Link>
-                        <button
-                          onClick={async () => {
-                            // Handle exchange request
-                            try {
-                              const response = await fetch('/api/exchanges/request', {
-                                method: 'POST',
-                                credentials: 'include',
-                                headers: {
-                                  'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                  bookId: selectedChat.bookId,
-                                }),
-                              })
-
-                              if (response.ok) {
-                                // Success - maybe show a toast notification
-                                console.log('Exchange request sent successfully')
-                                // You could add a success toast here
-                              } else {
-                                const errorData = await response.json()
-                                console.error('Failed to send exchange request:', errorData.error)
-                                // You could add an error toast here
-                              }
-                            } catch (error) {
-                              console.error('Error sending exchange request:', error)
-                            }
-                          }}
-                          className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-                        >
-                          <span>Request Exchange</span>
-                        </button>
+                        {renderExchangeButtons()}
                       </div>
                     </div>
                   </div>
 
                   {/* Messages */}
                   <div className="flex-1 overflow-y-auto p-3 lg:p-4 space-y-3 lg:space-y-4">
-                    {messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex ${
-                          message.senderId === user?.id ? 'justify-end' : 'justify-start'
-                        }`}
-                      >
-                        <div
-                          className={`max-w-xs lg:max-w-md px-3 lg:px-4 py-2 rounded-lg ${
-                            message.senderId === user?.id
-                              ? 'bg-emerald-600 text-white'
-                              : 'bg-gray-700 text-gray-100'
-                          }`}
-                        >
-                          <p className="text-sm">{message.content}</p>
-                          <p className={`text-xs mt-1 ${
-                            message.senderId === user?.id ? 'text-emerald-200' : 'text-gray-400'
-                          }`}>
-                            {formatTimeAgo(message.timestamp)}
-                          </p>
+                    {messagesLoading || !chatDataReady ? (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-gray-400 text-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500 mx-auto mb-2"></div>
+                          <p className="text-sm">Loading messages...</p>
                         </div>
                       </div>
-                    ))}
+                    ) : messages.length === 0 ? (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-gray-400 text-center">
+                          <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                          <p>No messages yet</p>
+                          <p className="text-sm mt-1">Start the conversation!</p>
+                        </div>
+                      </div>
+                    ) : (
+                      messages.map((message) => {
+                        const isCurrentUser = message.senderId === user?.id
+                        
+                        return (
+                          <div
+                            key={message.id}
+                            className={`flex ${
+                              isCurrentUser ? 'justify-end' : 'justify-start'
+                            }`}
+                          >
+                            <div
+                              className={`max-w-xs lg:max-w-md px-3 lg:px-4 py-2 rounded-lg ${
+                                isCurrentUser
+                                  ? 'bg-emerald-600 text-white'
+                                  : 'bg-gray-700 text-gray-100'
+                              }`}
+                            >
+                              <p className="text-sm">{message.content}</p>
+                              <p className={`text-xs mt-1 ${
+                                isCurrentUser ? 'text-emerald-200' : 'text-gray-400'
+                              }`}>
+                                {formatTimeAgo(message.timestamp)}
+                              </p>
+                            </div>
+                          </div>
+                        )
+                      })
+                    )}
                     <div ref={messagesEndRef} />
                   </div>
 

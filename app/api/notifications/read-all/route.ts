@@ -1,12 +1,30 @@
-import { NextResponse } from "next/server"
-import { withAuth, type AuthenticatedRequest } from "@/lib/middleware"
-import { markAllNotificationsAsRead } from "@/lib/databaseService"
+import { NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma" 
+import { verifyToken } from "@/lib/jwt"
 
-export const POST = withAuth(async (req: AuthenticatedRequest) => {
+export async function POST(request: NextRequest) {
   try {
-    await markAllNotificationsAsRead(req.user!.id)
-    return NextResponse.json({ message: "All notifications marked as read" })
+    const token = request.cookies.get("auth-token")?.value
+    
+    if (!token) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 })
+    }
+
+    const payload = verifyToken(token)
+    if (!payload || !payload.userId) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 })
+    }
+
+    const userId = payload.userId
+
+    await prisma.notification.updateMany({
+      where: { userId },
+      data: { isRead: true }
+    })
+
+    return NextResponse.json({ success: true })
   } catch (error) {
+    console.error("Error marking all notifications as read:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-})
+}

@@ -1,28 +1,39 @@
-import { NextResponse } from "next/server"
-import { updateNotification } from "@/lib/databaseService"
+import { NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 import { verifyToken } from "@/lib/jwt"
 
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    // Auth check
-    const token = req.headers.get("authorization")?.replace("Bearer ", "")
+    const token = request.cookies.get("auth-token")?.value
+    
     if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 })
     }
 
-    const decoded = verifyToken(token)
-    if (!decoded) {
+    const payload = verifyToken(token)
+    if (!payload || !payload.userId) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 })
     }
 
+    const userId = payload.userId
     const { id } = await params
-    const updatedNotification = await updateNotification(id, { isRead: true })
-    if (!updatedNotification) {
+
+    // Update the notification to mark as read
+    const notification = await prisma.notification.updateMany({
+      where: { 
+        id,
+        userId // Ensure user can only update their own notifications
+      },
+      data: { isRead: true }
+    })
+
+    if (notification.count === 0) {
       return NextResponse.json({ error: "Notification not found" }, { status: 404 })
     }
 
-    return NextResponse.json(updatedNotification)
+    return NextResponse.json({ success: true })
   } catch (error) {
+    console.error("Error marking notification as read:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
