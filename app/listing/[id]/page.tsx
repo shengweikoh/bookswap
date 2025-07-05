@@ -6,11 +6,13 @@ import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Calendar, MapPin, MessageCircle, Heart, Share2, Flag } from "lucide-react"
 import { apiService } from "@/lib/api"
+import { useAuth } from "@/contexts/AuthContext"
 import type { BookWithOwner } from "@/lib/types"
 
 export default function ListingDetails() {
   const params = useParams()
   const router = useRouter()
+  const { user, isAuthenticated } = useAuth()
   const [book, setBook] = useState<BookWithOwner | null>(null)
   const [ownerBooks, setOwnerBooks] = useState<BookWithOwner[]>([])
   const [isLiked, setIsLiked] = useState(false)
@@ -120,6 +122,9 @@ export default function ListingDetails() {
     }
   }
 
+  // Check if the current user owns this book
+  const isOwner = isAuthenticated && user && book && book.ownerId === user.id
+
   return (
     <div className="min-h-screen bg-gray-900">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -214,10 +219,17 @@ export default function ListingDetails() {
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={handleChatClick}
-                    className="flex-1 bg-emerald-600 text-white px-6 py-3 rounded-md hover:bg-emerald-700 transition-colors font-medium flex items-center justify-center space-x-2"
+                    disabled={!!isOwner}
+                    className={`flex-1 px-6 py-3 rounded-md font-medium flex items-center justify-center space-x-2 transition-colors ${
+                      isOwner 
+                        ? "bg-gray-600 text-gray-400 cursor-not-allowed" 
+                        : "bg-emerald-600 text-white hover:bg-emerald-700"
+                    }`}
                   >
                     <MessageCircle className="h-5 w-5" />
-                    <span>Chat with {book.owner}</span>
+                    <span>
+                      {isOwner ? "Your Listing" : `Chat with ${book.owner}`}
+                    </span>
                   </button>
 
                   <div className="flex gap-2">
