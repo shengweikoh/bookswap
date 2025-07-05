@@ -1,15 +1,60 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import YouMayLike from "@/components/YouMayLike"
 import RecentSwaps from "@/components/RecentSwaps"
 import LatestPostings from "@/components/LatestPostings"
 import { BookOpen, TrendingUp, Users } from "lucide-react"
+import { apiService } from "@/lib/api"
 
 export default function Home() {
+  const [user, setUser] = useState<any>(null)
+  const [userStats, setUserStats] = useState({
+    booksListed: 0,
+    successfulSwaps: 0,
+    communityRank: 0,
+  })
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    // Get user from localStorage first for immediate display
+    const currentUser = apiService.getCurrentUser()
+    setUser(currentUser)
+
+    // Then fetch fresh profile data
+    fetchUserProfile()
+  }, [])
+
+  const fetchUserProfile = async () => {
+    try {
+      const result = await apiService.getUserProfile()
+      if (result.success && result.data) {
+        setUser(result.data)
+        // Calculate stats from user's books and exchanges
+        const booksListed = result.data.books?.length || 0
+        const successfulSwaps = result.data.exchanges?.filter((ex: any) => ex.status === "completed")?.length || 0
+        
+        setUserStats({
+          booksListed,
+          successfulSwaps,
+          communityRank: Math.floor(Math.random() * 100) + 1, // Placeholder until we implement ranking
+        })
+      }
+    } catch (error) {
+      console.error("Failed to fetch user profile:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome back, John!</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Welcome back, {isLoading ? "..." : user?.name || "Reader"}!
+          </h1>
           <p className="text-gray-400">Discover new books and connect with fellow readers in your community.</p>
         </div>
 
@@ -22,7 +67,7 @@ export default function Home() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-400">Books Listed</p>
-                <p className="text-2xl font-bold text-white">12</p>
+                <p className="text-2xl font-bold text-white">{isLoading ? "..." : userStats.booksListed}</p>
               </div>
             </div>
           </div>
@@ -34,7 +79,7 @@ export default function Home() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-400">Successful Swaps</p>
-                <p className="text-2xl font-bold text-white">8</p>
+                <p className="text-2xl font-bold text-white">{isLoading ? "..." : userStats.successfulSwaps}</p>
               </div>
             </div>
           </div>
@@ -46,7 +91,7 @@ export default function Home() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-400">Community Rank</p>
-                <p className="text-2xl font-bold text-white">#47</p>
+                <p className="text-2xl font-bold text-white">#{isLoading ? "..." : userStats.communityRank}</p>
               </div>
             </div>
           </div>

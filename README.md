@@ -16,16 +16,12 @@ A modern web application for book lovers to exchange books with each other, buil
 - ✅ **Auto database setup** - PostgreSQL with schema and seed data
 - ✅ **One-command startup** - `./start.sh` handles everything
 - ✅ **Health checks** - `./health-check.sh` verifies everything works
-- ✅ **Development tools** - Makefile with common commands
 - ✅ **Comprehensive docs** - README.md and .env.example
 
 ### Quick Commands:
 ```bash
 ./start.sh           # Start everything
 ./health-check.sh    # Verify it's working
-make help           # See all available commands
-make logs           # View logs
-make stop           # Stop everything
 ```
 
 ## 🚀 Quick Start
@@ -41,12 +37,6 @@ git clone <repository-url>
 cd bookswap
 chmod +x start.sh
 ./start.sh
-```
-
-**Alternative using Make:**
-
-```bash
-make start
 ```
 
 That's it! The script will automatically:
@@ -113,37 +103,27 @@ docker compose logs -f db     # Just the database
 ### Stop the Application
 ```bash
 docker compose down
-# or
-make stop
 ```
 
 ### Restart the Application
 ```bash
 ./start.sh
-# or
-make restart
 ```
 
 ### Reset Database (Clean Slate)
 ```bash
 docker compose down -v
 ./start.sh
-# or
-make clean && make start
 ```
 
 ### Access Database Directly
 ```bash
 docker compose exec db psql -U bookswap_user -d bookswap_db
-# or
-make db
 ```
 
 ### Access App Container
 ```bash
 docker compose exec app bash
-# or
-make shell
 ```
 
 ## 🛠️ Technology Stack
@@ -163,7 +143,6 @@ bookswap/
 ├── .env.example          # Environment variables template
 ├── docker-compose.yml    # Docker services configuration
 ├── Dockerfile           # App container configuration
-├── Makefile             # Development commands
 ├── app/                 # Next.js app directory
 │   ├── api/             # API routes
 │   ├── components/      # React components
@@ -213,8 +192,6 @@ docker compose restart app
 Run the health check script to verify everything is working:
 ```bash
 ./health-check.sh
-# or
-make health
 ```
 
 ## 🌟 Features

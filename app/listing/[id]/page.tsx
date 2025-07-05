@@ -1,84 +1,71 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Calendar, MapPin, MessageCircle, Heart, Share2, Flag } from "lucide-react"
+import { apiService } from "@/lib/api"
 import type { BookWithOwner } from "@/lib/types"
-
-// Sample book data - in a real app, this would come from an API
-const sampleBooks: Record<string, BookWithOwner & { datePosted: string; ownerLocation: string; ownerAvatar: string }> = {
-  "1": {
-    id: "1",
-    title: "The Great Gatsby",
-    author: "F. Scott Fitzgerald",
-    genre: "Classic Literature",
-    condition: "Good",
-    description:
-      "A masterpiece of American literature that captures the essence of the Jazz Age. This classic novel follows the mysterious Jay Gatsby and his obsession with the beautiful Daisy Buchanan. The book is in good condition with minimal wear on the cover and clean, readable pages throughout. A must-read for any literature enthusiast.",
-    owner: "John Smith",
-    ownerId: "1",
-    image: "/placeholder.svg?height=400&width=300",
-    datePosted: "2024-01-15",
-    ownerLocation: "Downtown, San Francisco",
-    ownerAvatar: "/placeholder.svg?height=60&width=60",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    isAvailable: true,
-  },
-  "2": {
-    id: "2",
-    title: "To Kill a Mockingbird",
-    author: "Harper Lee",
-    genre: "Classic Literature",
-    condition: "New",
-    description:
-      "A gripping tale of racial injustice and childhood innocence in the American South. This powerful novel explores themes of morality, prejudice, and the loss of innocence through the eyes of Scout Finch. The book is in excellent condition, practically new with no markings or damage.",
-    owner: "Jane Doe",
-    ownerId: "2",
-    image: "/placeholder.svg?height=400&width=300",
-    datePosted: "2024-01-10",
-    ownerLocation: "Mission District, San Francisco",
-    ownerAvatar: "/placeholder.svg?height=60&width=60",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    isAvailable: true,
-  },
-  rec1: {
-    id: "rec1",
-    title: "The Seven Husbands of Evelyn Hugo",
-    author: "Taylor Jenkins Reid",
-    genre: "Contemporary Fiction",
-    condition: "Good",
-    description:
-      "A captivating novel about a reclusive Hollywood icon who finally decides to tell her story to an unknown journalist. This book explores themes of love, ambition, and the price of fame. The pages are clean and the binding is tight, with only minor shelf wear on the cover.",
-    owner: "Sarah Wilson",
-    ownerId: "4",
-    image: "/placeholder.svg?height=400&width=300",
-    datePosted: "2024-01-12",
-    ownerLocation: "Castro District, San Francisco",
-    ownerAvatar: "/placeholder.svg?height=60&width=60",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    isAvailable: true,
-  },
-}
 
 export default function ListingDetails() {
   const params = useParams()
   const router = useRouter()
+  const [book, setBook] = useState<BookWithOwner | null>(null)
+  const [ownerBooks, setOwnerBooks] = useState<BookWithOwner[]>([])
   const [isLiked, setIsLiked] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const bookId = params.id as string
-  const book = sampleBooks[bookId]
 
-  if (!book) {
+  useEffect(() => {
+    fetchBookDetails()
+  }, [bookId])
+
+  const fetchBookDetails = async () => {
+    try {
+      setLoading(true)
+      const result = await apiService.getBookById(bookId)
+      
+      if (result.success && result.data) {
+        setBook(result.data)
+        
+        // Fetch more books from the same owner
+        if (result.data.ownerId) {
+          const ownerBooksResult = await apiService.getUserBooks(result.data.ownerId)
+          if (ownerBooksResult.success && ownerBooksResult.data) {
+            // Filter out the current book and limit to 4 books
+            const otherBooks = ownerBooksResult.data
+              .filter((b: any) => b.id !== bookId)
+              .slice(0, 4)
+            setOwnerBooks(otherBooks)
+          }
+        }
+      } else {
+        setError(result.error || "Book not found")
+      }
+    } catch (err) {
+      setError("Failed to load book details")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white">Loading book details...</div>
+      </div>
+    )
+  }
+
+  if (error || !book) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-4">Book Not Found</h1>
-          <p className="text-gray-400 mb-6">The book you're looking for doesn't exist.</p>
+          <p className="text-gray-400 mb-6">{error || "The book you're looking for doesn't exist."}</p>
           <Link
             href="/browse"
             className="bg-emerald-600 text-white px-6 py-2 rounded-md hover:bg-emerald-700 transition-colors"
@@ -103,9 +90,9 @@ export default function ListingDetails() {
     }
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString("en-US", {
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date
+    return dateObj.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -202,7 +189,7 @@ export default function ListingDetails() {
                 <h3 className="text-lg font-semibold text-white mb-3">Owner Information</h3>
                 <div className="flex items-center space-x-4 mb-4">
                   <Image
-                    src={book.ownerAvatar || "/placeholder.svg"}
+                    src={book.image || "/placeholder.svg"}
                     alt={book.owner}
                     width={60}
                     height={60}
@@ -213,11 +200,11 @@ export default function ListingDetails() {
                     <div className="flex items-center space-x-4 text-sm text-gray-400 mt-1">
                       <div className="flex items-center space-x-1">
                         <MapPin className="h-4 w-4" />
-                        <span>{book.ownerLocation}</span>
+                        <span>Location not specified</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Calendar className="h-4 w-4" />
-                        <span>Posted {formatDate(book.datePosted)}</span>
+                        <span>Posted {formatDate(book.createdAt)}</span>
                       </div>
                     </div>
                   </div>
@@ -255,10 +242,10 @@ export default function ListingDetails() {
               <div className="bg-gray-700 rounded-lg p-4">
                 <h3 className="text-lg font-semibold text-white mb-3">Exchange Information</h3>
                 <div className="space-y-2 text-sm text-gray-300">
-                  <p>• This book is available for exchange</p>
-                  <p>• Owner prefers local meetups in San Francisco</p>
+                  <p>• This book is {book.isAvailable ? "available" : "not available"} for exchange</p>
+                  <p>• Contact owner for meetup details</p>
                   <p>• Response time: Usually within 24 hours</p>
-                  <p>• Exchange rating: ⭐⭐⭐⭐⭐ (4.8/5 from 12 exchanges)</p>
+                  <p>• Book condition: {book.condition}</p>
                 </div>
               </div>
             </div>
@@ -269,26 +256,38 @@ export default function ListingDetails() {
         <div className="mt-12">
           <h2 className="text-2xl font-bold text-white mb-6">More from {book.owner}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {/* Sample related books */}
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:shadow-lg transition-shadow"
-              >
-                <div className="aspect-[3/4] bg-gray-700 rounded-md mb-3">
-                  <Image
-                    src={`/placeholder.svg?height=200&width=150`}
-                    alt={`Book ${i}`}
-                    width={150}
-                    height={200}
-                    className="w-full h-full object-cover rounded-md"
-                  />
-                </div>
-                <h4 className="font-medium text-white text-sm mb-1">Sample Book Title {i}</h4>
-                <p className="text-gray-400 text-xs mb-2">by Sample Author</p>
-                <span className="px-2 py-1 text-xs bg-emerald-900 text-emerald-300 rounded-full">Good</span>
+            {ownerBooks.length > 0 ? (
+              ownerBooks.map((ownerBook) => (
+                <Link
+                  key={ownerBook.id}
+                  href={`/listing/${ownerBook.id}`}
+                  className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:shadow-lg transition-shadow"
+                >
+                  <div className="aspect-[3/4] bg-gray-700 rounded-md mb-3">
+                    <Image
+                      src={ownerBook.image || "/placeholder.svg"}
+                      alt={ownerBook.title}
+                      width={150}
+                      height={200}
+                      className="w-full h-full object-cover rounded-md"
+                    />
+                  </div>
+                  <h4 className="font-medium text-white text-sm mb-1">{ownerBook.title}</h4>
+                  <p className="text-gray-400 text-xs mb-2">by {ownerBook.author}</p>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    ownerBook.condition === "New" ? "bg-emerald-900 text-emerald-300" :
+                    ownerBook.condition === "Good" ? "bg-yellow-900 text-yellow-300" :
+                    "bg-red-900 text-red-300"
+                  }`}>
+                    {ownerBook.condition}
+                  </span>
+                </Link>
+              ))
+            ) : (
+              <div className="col-span-full text-center text-gray-400">
+                No other books from this owner
               </div>
-            ))}
+            )}
           </div>
         </div>
 

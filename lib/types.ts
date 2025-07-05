@@ -52,4 +52,43 @@ export interface Notification {
   relatedId: string | null // ID of related entity (book, exchange, etc.)
 }
 
+// Utility types for API responses (dates come as strings via JSON)
+export interface ApiUser extends Omit<User, 'createdAt' | 'updatedAt'> {
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ApiBook extends Omit<Book, 'createdAt' | 'updatedAt'> {
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ApiBookWithOwner extends ApiBook {
+  owner: string
+}
+
+export interface ApiExchangeRequest extends Omit<ExchangeRequest, 'createdAt' | 'updatedAt'> {
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ApiNotification extends Omit<Notification, 'createdAt'> {
+  createdAt: string
+}
+
+// Utility function for safe date handling in components
+export function formatTimeAgo(date: Date | string): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date
+  const now = new Date()
+  const diff = now.getTime() - dateObj.getTime()
+  const minutes = Math.floor(diff / (1000 * 60))
+  const hours = Math.floor(diff / (1000 * 60 * 60))
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+
+  if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`
+  if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`
+  if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`
+  return "Just now"
+}
+
 // Use Prisma client from './prisma' for database operations

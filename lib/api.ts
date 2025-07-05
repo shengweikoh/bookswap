@@ -300,6 +300,21 @@ class ApiService {
     }
   }
 
+  async getExchangeHistory(): Promise<ApiResponse<any[]>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/exchanges/history`, {
+        headers: this.getAuthHeaders(),
+      })
+
+      return await this.handleResponse(response)
+    } catch (error) {
+      return {
+        success: false,
+        error: "Failed to fetch exchange history",
+      }
+    }
+  }
+
   // User Profile APIs
   async getUserProfile(): Promise<ApiResponse<any>> {
     try {
@@ -377,6 +392,21 @@ class ApiService {
       return {
         success: false,
         error: "Failed to mark all notifications as read",
+      }
+    }
+  }
+
+  async getUserBooks(userId: string): Promise<ApiResponse<any[]>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/books/user/${userId}`, {
+        headers: this.getAuthHeaders(),
+      })
+
+      return await this.handleResponse(response)
+    } catch (error) {
+      return {
+        success: false,
+        error: "Failed to fetch user books",
       }
     }
   }

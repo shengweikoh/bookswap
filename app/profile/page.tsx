@@ -1,48 +1,49 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { User, Mail, BookOpen, Calendar, MapPin, Edit, Heart } from "lucide-react"
 import EditProfileModal from "@/components/EditProfileModal"
-
-// Sample user data
-const initialUserData = {
-  id: "1",
-  name: "John Smith",
-  email: "john.smith@email.com",
-  avatar: "/placeholder.svg?height=120&width=120",
-  memberSince: "2023",
-  interestedGenres: ["Science Fiction", "Fantasy", "Mystery"],
-  birthday: "1990-05-15",
-  location: "San Francisco, CA",
-  books: [
-    {
-      id: "1",
-      title: "The Great Gatsby",
-      author: "F. Scott Fitzgerald",
-      condition: "Good",
-      status: "Available",
-    },
-    {
-      id: "2",
-      title: "1984",
-      author: "George Orwell",
-      condition: "New",
-      status: "Exchanged",
-    },
-    {
-      id: "3",
-      title: "Pride and Prejudice",
-      author: "Jane Austen",
-      condition: "Worn",
-      status: "Available",
-    },
-  ],
-}
+import { apiService } from "@/lib/api"
 
 export default function Profile() {
-  const [userData, setUserData] = useState(initialUserData)
+  const [userData, setUserData] = useState<any>(null)
+  const [userBooks, setUserBooks] = useState<any[]>([])
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchUserData()
+  }, [])
+
+  const fetchUserData = async () => {
+    try {
+      setLoading(true)
+      const [profileResult, currentUser] = await Promise.all([
+        apiService.getUserProfile(),
+        apiService.getCurrentUser()
+      ])
+
+      if (profileResult.success && profileResult.data) {
+        setUserData(profileResult.data)
+        
+        // Fetch user's books
+        if (currentUser?.id) {
+          const booksResult = await apiService.getUserBooks(currentUser.id)
+          if (booksResult.success && booksResult.data) {
+            setUserBooks(booksResult.data)
+          }
+        }
+      } else {
+        setError(profileResult.error || "Failed to load profile")
+      }
+    } catch (err) {
+      setError("An error occurred while loading profile")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -70,8 +71,50 @@ export default function Profile() {
     }
   }
 
-  const handleSaveProfile = (newData: any) => {
-    setUserData({ ...userData, ...newData })
+  const handleSaveProfile = async (newData: any) => {
+    try {
+      const result = await apiService.updateUserProfile(newData)
+      if (result.success) {
+        setUserData({ ...userData, ...newData })
+        setIsEditModalOpen(false)
+      } else {
+        alert(result.error || "Failed to update profile")
+      }
+    } catch (error) {
+      alert("An error occurred while updating profile")
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white">Loading profile...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-400 mb-4">{error}</div>
+          <button
+            onClick={fetchUserData}
+            className="bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!userData) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white">No profile data available</div>
+      </div>
+    )
   }
 
   return (
@@ -119,14 +162,14 @@ export default function Profile() {
                 )}
               </div>
 
-              {userData.interestedGenres.length > 0 && (
+              {userData.interestedGenres && userData.interestedGenres.length > 0 && (
                 <div className="mb-4">
                   <div className="flex items-center space-x-2 mb-2">
                     <Heart className="h-5 w-5 text-emerald-400" />
                     <span className="text-sm font-medium text-gray-300">Interested Genres:</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {userData.interestedGenres.map((genre) => (
+                    {userData.interestedGenres.map((genre: string) => (
                       <span
                         key={genre}
                         className="px-3 py-1 text-xs font-medium bg-emerald-900 text-emerald-300 border border-emerald-700 rounded-full"
@@ -141,12 +184,12 @@ export default function Profile() {
               <div className="flex flex-col md:flex-row items-center md:items-start space-y-2 md:space-y-0 md:space-x-6">
                 <div className="flex items-center space-x-2">
                   <BookOpen className="h-5 w-5 text-emerald-400" />
-                  <span className="font-semibold text-emerald-400">{userData.books.length} Books Listed</span>
+                  <span className="font-semibold text-emerald-400">{userBooks.length} Books Listed</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <User className="h-5 w-5 text-indigo-400" />
                   <span className="font-semibold text-indigo-400">
-                    {userData.books.filter((book) => book.status === "Exchanged").length} Successful Exchanges
+                    {userBooks.filter((book: any) => book.status === "Exchanged").length} Successful Exchanges
                   </span>
                 </div>
               </div>
@@ -159,7 +202,7 @@ export default function Profile() {
           <h2 className="text-2xl font-bold text-white mb-6">My Books</h2>
 
           <div className="space-y-4">
-            {userData.books.map((book) => (
+            {userBooks.map((book: any) => (
               <div key={book.id} className="border border-gray-700 rounded-lg p-4 hover:bg-gray-750 transition-colors">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                   <div className="flex-1">
@@ -172,9 +215,9 @@ export default function Profile() {
                         {book.condition}
                       </span>
                       <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(book.status)}`}
+                        className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(book.isAvailable ? "Available" : "Exchanged")}`}
                       >
-                        {book.status}
+                        {book.isAvailable ? "Available" : "Exchanged"}
                       </span>
                     </div>
                   </div>
@@ -192,11 +235,14 @@ export default function Profile() {
             ))}
           </div>
 
-          {userData.books.length === 0 && (
+          {userBooks.length === 0 && (
             <div className="text-center py-12">
               <BookOpen className="h-12 w-12 text-gray-600 mx-auto mb-4" />
               <p className="text-gray-400 text-lg">You haven't listed any books yet.</p>
-              <button className="mt-4 bg-emerald-600 text-white px-6 py-2 rounded-md hover:bg-emerald-700 transition-colors">
+              <button 
+                onClick={() => window.location.href = "/add-book"}
+                className="mt-4 bg-emerald-600 text-white px-6 py-2 rounded-md hover:bg-emerald-700 transition-colors"
+              >
                 List Your First Book
               </button>
             </div>

@@ -1,116 +1,64 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search } from "lucide-react"
 import BookCard from "@/components/BookCard"
+import { apiService } from "@/lib/api"
 import type { BookWithOwner } from "@/lib/types"
 
-// Sample data
-const sampleBooks: BookWithOwner[] = [
-  {
-    id: "1",
-    title: "The Great Gatsby",
-    author: "F. Scott Fitzgerald",
-    genre: "Classic Literature",
-    condition: "Good",
-    description: "A masterpiece of American literature",
-    owner: "John Smith",
-    ownerId: "1",
-    image: "/placeholder.svg?height=300&width=225",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    isAvailable: true,
-  },
-  {
-    id: "2",
-    title: "To Kill a Mockingbird",
-    author: "Harper Lee",
-    genre: "Classic Literature",
-    condition: "New",
-    description: "A gripping tale of racial injustice and childhood innocence",
-    owner: "Jane Doe",
-    ownerId: "2",
-    image: "/placeholder.svg?height=300&width=225",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    isAvailable: true,
-  },
-  {
-    id: "3",
-    title: "The Catcher in the Rye",
-    author: "J.D. Salinger",
-    genre: "Classic Literature",
-    condition: "Worn",
-    description: "Coming-of-age story in New York City",
-    owner: "Mike Johnson",
-    ownerId: "3",
-    image: "/placeholder.svg?height=300&width=225",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    isAvailable: true,
-  },
-  {
-    id: "4",
-    title: "Dune",
-    author: "Frank Herbert",
-    genre: "Science Fiction",
-    condition: "Good",
-    description: "Epic space opera about politics and ecology",
-    owner: "Sarah Wilson",
-    ownerId: "4",
-    image: "/placeholder.svg?height=300&width=225",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    isAvailable: true,
-  },
-  {
-    id: "5",
-    title: "The Hobbit",
-    author: "J.R.R. Tolkien",
-    genre: "Fantasy",
-    condition: "New",
-    description: "A classic fantasy adventure",
-    owner: "David Brown",
-    ownerId: "5",
-    image: "/placeholder.svg?height=300&width=225",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    isAvailable: true,
-  },
-  {
-    id: "6",
-    title: "Gone Girl",
-    author: "Gillian Flynn",
-    genre: "Mystery",
-    condition: "Good",
-    description: "Psychological thriller about a missing wife",
-    owner: "Emma Davis",
-    ownerId: "6",
-    image: "/placeholder.svg?height=300&width=225",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    isAvailable: true,
-  },
-]
-
 export default function Browse() {
+  const [books, setBooks] = useState<BookWithOwner[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedGenre, setSelectedGenre] = useState("")
   const [selectedCondition, setSelectedCondition] = useState("")
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+
+  useEffect(() => {
+    fetchBooks()
+  }, [searchTerm, selectedGenre, selectedCondition, currentPage])
+
+  const fetchBooks = async () => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const result = await apiService.getBooks({
+        search: searchTerm || undefined,
+        genre: selectedGenre || undefined,
+        condition: selectedCondition || undefined,
+        page: currentPage,
+        size: 12,
+      })
+
+      if (result.success && result.data) {
+        setBooks(result.data.books)
+        setTotalPages(result.data.totalPages)
+      } else {
+        setError(result.error || "Failed to fetch books")
+      }
+    } catch (error) {
+      setError("Failed to fetch books")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    setCurrentPage(0)
+    fetchBooks()
+  }
+
+  const handleFilterChange = () => {
+    setCurrentPage(0)
+    fetchBooks()
+  }
 
   const genres = ["All Genres", "Classic Literature", "Science Fiction", "Fantasy", "Mystery", "Romance", "Non-Fiction"]
   const conditions = ["All Conditions", "New", "Good", "Worn"]
-
-  const filteredBooks = sampleBooks.filter((book) => {
-    const matchesSearch =
-      book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      book.author.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesGenre = selectedGenre === "" || selectedGenre === "All Genres" || book.genre === selectedGenre
-    const matchesCondition =
-      selectedCondition === "" || selectedCondition === "All Conditions" || book.condition === selectedCondition
-
-    return matchesSearch && matchesGenre && matchesCondition
-  })
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -120,7 +68,7 @@ export default function Browse() {
 
           {/* Search and Filter Bar */}
           <div className="bg-gray-800 border border-gray-700 p-6 rounded-lg shadow-lg">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-2">
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
@@ -137,7 +85,10 @@ export default function Browse() {
               <div>
                 <select
                   value={selectedGenre}
-                  onChange={(e) => setSelectedGenre(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedGenre(e.target.value)
+                    handleFilterChange()
+                  }}
                   className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 >
                   {genres.map((genre) => (
@@ -151,7 +102,10 @@ export default function Browse() {
               <div>
                 <select
                   value={selectedCondition}
-                  onChange={(e) => setSelectedCondition(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedCondition(e.target.value)
+                    handleFilterChange()
+                  }}
                   className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 >
                   {conditions.map((condition) => (
@@ -161,28 +115,69 @@ export default function Browse() {
                   ))}
                 </select>
               </div>
-            </div>
+            </form>
           </div>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 p-4 bg-red-900 border border-red-700 rounded-md">
+            <p className="text-red-300">{error}</p>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-12">
+            <p className="text-gray-400 text-lg">Loading books...</p>
+          </div>
+        )}
 
         {/* Results */}
-        <div className="mb-4">
-          <p className="text-gray-400">
-            Showing {filteredBooks.length} {filteredBooks.length === 1 ? "book" : "books"}
-          </p>
-        </div>
+        {!isLoading && !error && (
+          <>
+            <div className="mb-4">
+              <p className="text-gray-400">
+                Showing {books.length} {books.length === 1 ? "book" : "books"}
+              </p>
+            </div>
 
-        {/* Book Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredBooks.map((book) => (
-            <BookCard key={book.id} book={book} />
-          ))}
-        </div>
+            {/* Book Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {books.map((book) => (
+                <BookCard key={book.id} book={book} />
+              ))}
+            </div>
 
-        {filteredBooks.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-400 text-lg">No books found matching your criteria.</p>
-          </div>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-8 space-x-2">
+                <button
+                  onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                  disabled={currentPage === 0}
+                  className="px-4 py-2 bg-gray-700 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
+                >
+                  Previous
+                </button>
+                <span className="px-4 py-2 text-gray-300">
+                  Page {currentPage + 1} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                  disabled={currentPage >= totalPages - 1}
+                  className="px-4 py-2 bg-gray-700 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+
+            {books.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-400 text-lg">No books found matching your criteria.</p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

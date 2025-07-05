@@ -3,9 +3,12 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { BookOpen } from "lucide-react"
+import { apiService } from "@/lib/api"
 
 export default function AddBook() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     title: "",
     author: "",
@@ -13,6 +16,8 @@ export default function AddBook() {
     condition: "",
     description: "",
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({
@@ -21,10 +26,25 @@ export default function AddBook() {
     })
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle book submission
-    console.log("New book:", formData)
+    setIsSubmitting(true)
+    setSubmitError(null)
+
+    try {
+      const result = await apiService.addBook(formData)
+      
+      if (result.success) {
+        // Redirect to the browse page or show success message
+        router.push("/browse")
+      } else {
+        setSubmitError(result.error || "Failed to add book")
+      }
+    } catch (error) {
+      setSubmitError("An unexpected error occurred")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const genres = [
@@ -51,6 +71,12 @@ export default function AddBook() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {submitError && (
+              <div className="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded-md">
+                {submitError}
+              </div>
+            )}
+            
             <div>
               <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
                 Book Title *
@@ -151,9 +177,10 @@ export default function AddBook() {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 text-sm font-medium text-white bg-emerald-600 border border-transparent rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                disabled={isSubmitting}
+                className="px-6 py-2 text-sm font-medium text-white bg-emerald-600 border border-transparent rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Submit Book
+                {isSubmitting ? "Adding..." : "Submit Book"}
               </button>
             </div>
           </form>
