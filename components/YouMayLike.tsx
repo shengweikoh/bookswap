@@ -2,9 +2,9 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import BookCard from "./BookCard"
-import type { Book } from "@/lib/types"
+import type { BookWithOwner } from "@/lib/types"
 
-const recommendedBooks: Book[] = [
+const recommendedBooks: BookWithOwner[] = [
   {
     id: "rec1",
     title: "The Seven Husbands of Evelyn Hugo",
@@ -15,6 +15,9 @@ const recommendedBooks: Book[] = [
     owner: "Sarah Wilson",
     ownerId: "4",
     image: "/placeholder.svg?height=300&width=225",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isAvailable: true,
   },
   {
     id: "rec2",
@@ -26,6 +29,9 @@ const recommendedBooks: Book[] = [
     owner: "Mike Johnson",
     ownerId: "3",
     image: "/placeholder.svg?height=300&width=225",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isAvailable: true,
   },
   {
     id: "rec3",
@@ -37,6 +43,9 @@ const recommendedBooks: Book[] = [
     owner: "Emma Davis",
     ownerId: "6",
     image: "/placeholder.svg?height=300&width=225",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isAvailable: true,
   },
   {
     id: "rec4",
@@ -48,6 +57,9 @@ const recommendedBooks: Book[] = [
     owner: "David Brown",
     ownerId: "5",
     image: "/placeholder.svg?height=300&width=225",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isAvailable: true,
   },
 ]
 

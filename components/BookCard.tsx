@@ -2,12 +2,12 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import type { Book } from "@/lib/types"
+import type { BookWithOwner } from "@/lib/types"
 import ExchangeModal from "./ExchangeModal"
 import Link from "next/link"
 
 interface BookCardProps {
-  book: Book
+  book: BookWithOwner
 }
 
 export default function BookCard({ book }: BookCardProps) {

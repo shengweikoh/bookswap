@@ -1,13 +1,20 @@
 import { NextResponse } from "next/server"
 import { withAuth, type AuthenticatedRequest } from "@/lib/middleware"
-import { db } from "@/lib/database"
+import { getBooks, getUserById } from "@/lib/databaseService"
+import { Book, BookWithOwner } from "@/lib/types"
 
-export const GET = withAuth(async (req: AuthenticatedRequest, { params }: { params: { userId: string } }) => {
+export const GET = withAuth(async (req: AuthenticatedRequest) => {
   try {
-    const books = db.getBooks({ ownerId: params.userId })
+    const url = new URL(req.url)
+    const userId = url.pathname.split("/").filter(Boolean).pop()
+    if (!userId) {
+      return NextResponse.json({ error: "User ID is required" }, { status: 400 })
+    }
 
-    const owner = db.getUserById(params.userId)
-    const booksWithOwner = books.map((book) => ({
+    const books = await getBooks({ ownerId: userId })
+
+    const owner = await getUserById(userId)
+    const booksWithOwner: BookWithOwner[] = books.map((book: Book) => ({
       ...book,
       owner: owner ? owner.name : "Unknown",
     }))

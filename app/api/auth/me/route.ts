@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
 import { withAuth, type AuthenticatedRequest } from "@/lib/middleware"
-import { db } from "@/lib/database"
+import { getUserById } from "@/lib/databaseService"
 
 export const GET = withAuth(async (req: AuthenticatedRequest) => {
   try {
-    const user = db.getUserById(req.user!.id)
+    const user = await getUserById(req.user!.id)
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }

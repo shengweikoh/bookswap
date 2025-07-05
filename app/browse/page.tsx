@@ -3,10 +3,10 @@
 import { useState } from "react"
 import { Search } from "lucide-react"
 import BookCard from "@/components/BookCard"
-import type { Book } from "@/lib/types"
+import type { BookWithOwner } from "@/lib/types"
 
 // Sample data
-const sampleBooks: Book[] = [
+const sampleBooks: BookWithOwner[] = [
   {
     id: "1",
     title: "The Great Gatsby",
@@ -17,6 +17,9 @@ const sampleBooks: Book[] = [
     owner: "John Smith",
     ownerId: "1",
     image: "/placeholder.svg?height=300&width=225",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isAvailable: true,
   },
   {
     id: "2",
@@ -28,6 +31,9 @@ const sampleBooks: Book[] = [
     owner: "Jane Doe",
     ownerId: "2",
     image: "/placeholder.svg?height=300&width=225",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isAvailable: true,
   },
   {
     id: "3",
@@ -39,6 +45,9 @@ const sampleBooks: Book[] = [
     owner: "Mike Johnson",
     ownerId: "3",
     image: "/placeholder.svg?height=300&width=225",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isAvailable: true,
   },
   {
     id: "4",
@@ -50,6 +59,9 @@ const sampleBooks: Book[] = [
     owner: "Sarah Wilson",
     ownerId: "4",
     image: "/placeholder.svg?height=300&width=225",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isAvailable: true,
   },
   {
     id: "5",
@@ -61,6 +73,9 @@ const sampleBooks: Book[] = [
     owner: "David Brown",
     ownerId: "5",
     image: "/placeholder.svg?height=300&width=225",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isAvailable: true,
   },
   {
     id: "6",
@@ -72,6 +87,9 @@ const sampleBooks: Book[] = [
     owner: "Emma Davis",
     ownerId: "6",
     image: "/placeholder.svg?height=300&width=225",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isAvailable: true,
   },
 ]
 

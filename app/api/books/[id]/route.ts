@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server"
 import { withAuth, type AuthenticatedRequest } from "@/lib/middleware"
-import { db } from "@/lib/database"
+import { getBookById, getUserById, updateBook, deleteBook } from "@/lib/databaseService"
 
-export const GET = withAuth(async (req: AuthenticatedRequest, { params }: { params: { id: string } }) => {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const book = db.getBookById(params.id)
+    const { id } = await params
+    const book = await getBookById(id)
     if (!book) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 })
     }
 
-    const owner = db.getUserById(book.ownerId)
+    const owner = await getUserById(book.ownerId)
     return NextResponse.json({
       ...book,
       owner: owner ? owner.name : "Unknown",
@@ -19,11 +20,16 @@ export const GET = withAuth(async (req: AuthenticatedRequest, { params }: { para
   } catch (error) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-})
+}
 
-export const PUT = withAuth(async (req: AuthenticatedRequest, { params }: { params: { id: string } }) => {
+export const PUT = withAuth(async (req: AuthenticatedRequest) => {
   try {
-    const book = db.getBookById(params.id)
+    const url = new URL(req.url)
+    const id = url.pathname.split("/").filter(Boolean).pop()
+    if (!id) {
+      return NextResponse.json({ error: "Book ID is required" }, { status: 400 })
+    }
+    const book = await getBookById(id)
     if (!book) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 })
     }
@@ -34,9 +40,9 @@ export const PUT = withAuth(async (req: AuthenticatedRequest, { params }: { para
     }
 
     const updates = await req.json()
-    const updatedBook = db.updateBook(params.id, updates)
+    const updatedBook = await updateBook(id, updates)
 
-    const owner = db.getUserById(updatedBook!.ownerId)
+    const owner = await getUserById(updatedBook!.ownerId)
     return NextResponse.json({
       ...updatedBook,
       owner: owner ? owner.name : "Unknown",
@@ -46,9 +52,14 @@ export const PUT = withAuth(async (req: AuthenticatedRequest, { params }: { para
   }
 })
 
-export const DELETE = withAuth(async (req: AuthenticatedRequest, { params }: { params: { id: string } }) => {
+export const DELETE = withAuth(async (req: AuthenticatedRequest) => {
   try {
-    const book = db.getBookById(params.id)
+    const url = new URL(req.url)
+    const id = url.pathname.split("/").filter(Boolean).pop()
+    if (!id) {
+      return NextResponse.json({ error: "Book ID is required" }, { status: 400 })
+    }
+    const book = await getBookById(id)
     if (!book) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 })
     }
@@ -58,11 +69,7 @@ export const DELETE = withAuth(async (req: AuthenticatedRequest, { params }: { p
       return NextResponse.json({ error: "Unauthorized to delete this book" }, { status: 403 })
     }
 
-    const deleted = db.deleteBook(params.id)
-    if (!deleted) {
-      return NextResponse.json({ error: "Failed to delete book" }, { status: 500 })
-    }
-
+    await deleteBook(id)
     return NextResponse.json({ message: "Book deleted successfully" })
   } catch (error) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

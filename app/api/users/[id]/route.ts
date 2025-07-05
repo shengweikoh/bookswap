@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { withAuth, type AuthenticatedRequest } from "@/lib/middleware"
-import { db } from "@/lib/database"
+import { getUserById, getBooks } from "@/lib/databaseService"
 
 export const GET = withAuth(async (req: AuthenticatedRequest) => {
   try {
@@ -10,13 +10,13 @@ export const GET = withAuth(async (req: AuthenticatedRequest) => {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 })
     }
 
-    const user = db.getUserById(id)
+    const user = await getUserById(id)
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
     // Get user's books
-    const userBooks = db.getBooks({ ownerId: user.id })
+    const userBooks = await getBooks({ ownerId: user.id })
 
     // Return public profile information only
     return NextResponse.json({

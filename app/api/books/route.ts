@@ -1,26 +1,32 @@
 import { NextResponse } from "next/server"
 import { withAuth, type AuthenticatedRequest } from "@/lib/middleware"
-import { db } from "@/lib/database"
+import { getBooks, getUserById, createBook, createNotification } from "@/lib/databaseService"
+import { Book, BookWithOwner } from "@/lib/types"
 
 export const GET = withAuth(async (req: AuthenticatedRequest) => {
   try {
     const { searchParams } = new URL(req.url)
     const search = searchParams.get("search") || undefined
     const genre = searchParams.get("genre") || undefined
-    const condition = searchParams.get("condition") || undefined
+    const conditionParam = searchParams.get("condition")
+    const condition = (conditionParam && ["New", "Good", "Worn"].includes(conditionParam)) 
+      ? conditionParam as "New" | "Good" | "Worn" 
+      : undefined
     const page = Number.parseInt(searchParams.get("page") || "0")
     const size = Number.parseInt(searchParams.get("size") || "20")
 
-    const allBooks = db.getBooks({ search, genre, condition })
+    const allBooks = await getBooks({ search, genre, condition })
 
     // Add owner information to books
-    const booksWithOwners = allBooks.map((book) => {
-      const owner = db.getUserById(book.ownerId)
-      return {
-        ...book,
-        owner: owner ? owner.name : "Unknown",
-      }
-    })
+    const booksWithOwners: BookWithOwner[] = await Promise.all(
+      allBooks.map(async (book: Book): Promise<BookWithOwner> => {
+        const owner = await getUserById(book.ownerId)
+        return {
+          ...book,
+          owner: owner ? owner.name : "Unknown",
+        }
+      })
+    )
 
     // Pagination
     const startIndex = page * size
@@ -46,7 +52,7 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
       return NextResponse.json({ error: "Title, author, genre, and condition are required" }, { status: 400 })
     }
 
-    const book = db.createBook({
+    const book = await createBook({
       title,
       author,
       genre,
@@ -58,7 +64,7 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
     })
 
     // Create notification for successful listing
-    db.createNotification({
+    await createNotification({
       userId: req.user!.id,
       title: "Book Listed Successfully",
       message: `Your book "${title}" is now live and visible to other users`,
@@ -67,7 +73,7 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
       relatedId: book.id,
     })
 
-    const owner = db.getUserById(book.ownerId)
+    const owner = await getUserById(book.ownerId)
     return NextResponse.json({
       ...book,
       owner: owner ? owner.name : "Unknown",

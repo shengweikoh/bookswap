@@ -5,10 +5,10 @@ import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Calendar, MapPin, MessageCircle, Heart, Share2, Flag } from "lucide-react"
-import type { Book } from "@/lib/types"
+import type { BookWithOwner } from "@/lib/types"
 
 // Sample book data - in a real app, this would come from an API
-const sampleBooks: Record<string, Book & { datePosted: string; ownerLocation: string; ownerAvatar: string }> = {
+const sampleBooks: Record<string, BookWithOwner & { datePosted: string; ownerLocation: string; ownerAvatar: string }> = {
   "1": {
     id: "1",
     title: "The Great Gatsby",
@@ -23,6 +23,9 @@ const sampleBooks: Record<string, Book & { datePosted: string; ownerLocation: st
     datePosted: "2024-01-15",
     ownerLocation: "Downtown, San Francisco",
     ownerAvatar: "/placeholder.svg?height=60&width=60",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isAvailable: true,
   },
   "2": {
     id: "2",
@@ -38,6 +41,9 @@ const sampleBooks: Record<string, Book & { datePosted: string; ownerLocation: st
     datePosted: "2024-01-10",
     ownerLocation: "Mission District, San Francisco",
     ownerAvatar: "/placeholder.svg?height=60&width=60",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isAvailable: true,
   },
   rec1: {
     id: "rec1",
@@ -53,6 +59,9 @@ const sampleBooks: Record<string, Book & { datePosted: string; ownerLocation: st
     datePosted: "2024-01-12",
     ownerLocation: "Castro District, San Francisco",
     ownerAvatar: "/placeholder.svg?height=60&width=60",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isAvailable: true,
   },
 }
 

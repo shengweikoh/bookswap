@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server"
 import { verifyToken, extractTokenFromHeader } from "./jwt"
-import { db } from "./database"
+import { getUserById } from "./databaseService"
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: {
@@ -31,7 +31,7 @@ export function withAuth(handler: (req: AuthenticatedRequest) => Promise<Respons
         })
       }
 
-      const user = db.getUserById(payload.userId)
+      const user = await getUserById(payload.userId)
       if (!user) {
         return new Response(JSON.stringify({ error: "User not found" }), {
           status: 401,

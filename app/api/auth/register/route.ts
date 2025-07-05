@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
-import { db } from "@/lib/database"
+import { getUserByEmail, createUser, createNotification } from "@/lib/databaseService"
 import { signToken } from "@/lib/jwt"
 
 export async function POST(request: NextRequest) {
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = db.getUserByEmail(email)
+    const existingUser = await getUserByEmail(email)
     if (existingUser) {
       return NextResponse.json({ error: "User with this email already exists" }, { status: 409 })
     }
@@ -21,20 +21,24 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10)
 
     // Create user
-    const user = db.createUser({
+    const user = await createUser({
       name,
       email,
       password: hashedPassword,
       interestedGenres: [],
+      avatar: null,
+      birthday: null,
+      location: null,
     })
 
     // Create welcome notification
-    db.createNotification({
+    await createNotification({
       userId: user.id,
       title: "Welcome to BookSwap!",
       message: "Complete your profile to get better book recommendations",
       type: "welcome",
       isRead: false,
+      relatedId: null,
     })
 
     const token = signToken({ userId: user.id, email: user.email })

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { withAuth, type AuthenticatedRequest } from "@/lib/middleware"
-import { db } from "@/lib/database"
+import { getBookById, getUserById, createExchangeRequest, createNotification } from "@/lib/databaseService"
 
 export const POST = withAuth(async (req: AuthenticatedRequest) => {
   try {
@@ -10,7 +10,7 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
       return NextResponse.json({ error: "Book ID and message are required" }, { status: 400 })
     }
 
-    const book = db.getBookById(bookId)
+    const book = await getBookById(bookId)
     if (!book) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 })
     }
@@ -19,7 +19,7 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
       return NextResponse.json({ error: "Cannot request exchange for your own book" }, { status: 400 })
     }
 
-    const exchangeRequest = db.createExchangeRequest({
+    const exchangeRequest = await createExchangeRequest({
       bookId,
       requesterId: req.user!.id,
       ownerId: book.ownerId,
@@ -28,8 +28,8 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
     })
 
     // Create notification for book owner
-    const requester = db.getUserById(req.user!.id)
-    db.createNotification({
+    const requester = await getUserById(req.user!.id)
+    await createNotification({
       userId: book.ownerId,
       title: "Exchange Request Received",
       message: `${requester?.name} wants to exchange "${book.title}" with your book`,

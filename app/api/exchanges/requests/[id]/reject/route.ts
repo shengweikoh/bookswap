@@ -1,26 +1,38 @@
 import { NextResponse } from "next/server"
-import { withAuth, type AuthenticatedRequest } from "@/lib/middleware"
-import { db } from "@/lib/database"
+import { getExchangeRequestById, updateExchangeRequest, getBookById, getUserById, createNotification } from "@/lib/databaseService"
+import { verifyToken } from "@/lib/jwt"
 
-export const POST = withAuth(async (req: AuthenticatedRequest, { params }: { params: { id: string } }) => {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const exchangeRequest = db.getExchangeRequestById(params.id)
+    // Auth check
+    const token = req.headers.get("authorization")?.replace("Bearer ", "")
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const decoded = verifyToken(token)
+    if (!decoded) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 })
+    }
+
+    const { id } = await params
+    const exchangeRequest = await getExchangeRequestById(id)
     if (!exchangeRequest) {
       return NextResponse.json({ error: "Exchange request not found" }, { status: 404 })
     }
 
     // Check if user is the owner of the book
-    if (exchangeRequest.ownerId !== req.user!.id) {
+    if (exchangeRequest.ownerId !== decoded.userId) {
       return NextResponse.json({ error: "Unauthorized to reject this request" }, { status: 403 })
     }
 
-    const updatedRequest = db.updateExchangeRequest(params.id, { status: "rejected" })
+    const updatedRequest = await updateExchangeRequest(id, { status: "rejected" })
 
     // Create notification for requester
-    const book = db.getBookById(exchangeRequest.bookId)
-    const owner = db.getUserById(req.user!.id)
+    const book = await getBookById(exchangeRequest.bookId)
+    const owner = await getUserById(decoded.userId)
 
-    db.createNotification({
+    await createNotification({
       userId: exchangeRequest.requesterId,
       title: "Exchange Request Declined",
       message: `${owner?.name} declined your request for "${book?.title}"`,
@@ -33,4 +45,4 @@ export const POST = withAuth(async (req: AuthenticatedRequest, { params }: { par
   } catch (error) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-})
+}
