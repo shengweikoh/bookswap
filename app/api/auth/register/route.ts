@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     const token = signToken({ userId: user.id, email: user.email })
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       token,
       user: {
         id: user.id,
@@ -52,6 +52,17 @@ export async function POST(request: NextRequest) {
         avatar: user.avatar,
       },
     })
+
+    // Set the auth token as an HTTP-only cookie
+    response.cookies.set('auth-token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    })
+
+    return response
   } catch (error) {
     console.error("Registration error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

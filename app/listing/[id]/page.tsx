@@ -4,7 +4,8 @@ import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft, Calendar, MapPin, MessageCircle, Heart, Share2, Flag } from "lucide-react"
+import { ArrowLeft, Calendar, MapPin, MessageCircle, Share2, Flag } from "lucide-react"
+import AuthWrapper from "@/components/AuthWrapper"
 import { apiService } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import type { BookWithOwner } from "@/lib/types"
@@ -15,7 +16,6 @@ export default function ListingDetails() {
   const { user, isAuthenticated } = useAuth()
   const [book, setBook] = useState<BookWithOwner | null>(null)
   const [ownerBooks, setOwnerBooks] = useState<BookWithOwner[]>([])
-  const [isLiked, setIsLiked] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -102,10 +102,10 @@ export default function ListingDetails() {
   }
 
   const handleChatClick = () => {
-    // In a real app, this would navigate to a chat interface or open a chat modal
-    console.log(`Starting chat with ${book.owner}`)
-    // For now, we'll just show an alert
-    alert(`Chat feature would open here to message ${book.owner}`)
+    if (!isOwner && book) {
+      // Navigate to My Chats page with book and owner information
+      router.push(`/my-chats?bookId=${book.id}&ownerId=${book.ownerId}`)
+    }
   }
 
   const handleShare = () => {
@@ -126,40 +126,33 @@ export default function ListingDetails() {
   const isOwner = isAuthenticated && user && book && book.ownerId === user.id
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Back Button */}
-        <div className="mb-6">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span>Back to Listings</span>
-          </button>
-        </div>
+    <AuthWrapper>
+      <div className="min-h-screen bg-gray-900">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Back Button */}
+          <div className="mb-6">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" />
+              <span>Back to Listings</span>
+            </button>
+          </div>
 
         {/* Main Content */}
         <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-xl overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
             {/* Book Image */}
-            <div className="flex justify-center lg:justify-start">
+            <div className="flex justify-center items-center">
               <div className="relative">
                 <Image
                   src={book.image || "/images/books/placeholder.svg"}
                   alt={book.title}
                   width={300}
                   height={400}
-                  className="rounded-lg shadow-lg object-cover"
+                  className="rounded-lg object-cover"
                 />
-                <button
-                  onClick={() => setIsLiked(!isLiked)}
-                  className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${
-                    isLiked ? "bg-red-600 text-white" : "bg-gray-900 bg-opacity-70 text-gray-300 hover:text-red-400"
-                  }`}
-                >
-                  <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
-                </button>
               </div>
             </div>
 
@@ -315,5 +308,6 @@ export default function ListingDetails() {
         </div>
       </div>
     </div>
+    </AuthWrapper>
   )
 }

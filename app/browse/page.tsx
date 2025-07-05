@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Search } from "lucide-react"
 import BookCard from "@/components/BookCard"
+import AuthWrapper from "@/components/AuthWrapper"
 import { apiService } from "@/lib/api"
 import type { BookWithOwner } from "@/lib/types"
 
@@ -61,10 +62,11 @@ export default function Browse() {
   const conditions = ["All Conditions", "New", "Good", "Worn"]
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-6">Browse Books</h1>
+    <AuthWrapper>
+      <div className="min-h-screen bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-white mb-6">Browse Books</h1>
 
           {/* Search and Filter Bar */}
           <div className="bg-gray-800 border border-gray-700 p-6 rounded-lg shadow-lg">
@@ -181,5 +183,6 @@ export default function Browse() {
         )}
       </div>
     </div>
+    </AuthWrapper>
   )
 }

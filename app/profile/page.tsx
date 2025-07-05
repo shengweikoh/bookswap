@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import { User, Mail, BookOpen, Calendar, MapPin, Edit, Heart } from "lucide-react"
 import EditProfileModal from "@/components/EditProfileModal"
+import AuthWrapper from "@/components/AuthWrapper"
 import { apiService } from "@/lib/api"
 
 export default function Profile() {
@@ -129,14 +130,14 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Profile Header */}
-        <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-8 mb-8">
-          <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
-            <div className="relative">
-              <Image
-                src={userData.avatar || "/images/avatars/default-avatar.svg"}
+    <AuthWrapper>
+      <div className="min-h-screen bg-gray-900">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{/* Profile Header */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-8 mb-8">
+            <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
+              <div className="relative">
+                <Image
+                  src={userData.avatar || "/images/avatars/default-avatar.svg"}
                 alt={userData.name}
                 width={120}
                 height={120}
@@ -288,5 +289,6 @@ export default function Profile() {
         onSave={handleSaveProfile}
       />
     </div>
+    </AuthWrapper>
   )
 }

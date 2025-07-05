@@ -15,7 +15,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   const noHeaderPages = ["/", "/login", "/signup"]
 
   // Pages that need the authenticated header
-  const authenticatedPages = ["/home", "/browse", "/add-book", "/profile", "/notifications", "/my-listings"]
+  const authenticatedPages = ["/home", "/browse", "/add-book", "/listing", "/profile", "/notifications", "/my-listings", "/my-chats"]
 
   const showNoHeader = noHeaderPages.includes(pathname)
   const showAuthenticatedHeader = authenticatedPages.includes(pathname)

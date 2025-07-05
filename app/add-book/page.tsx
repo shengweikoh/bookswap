@@ -5,6 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { BookOpen } from "lucide-react"
+import AuthWrapper from "@/components/AuthWrapper"
 import { apiService } from "@/lib/api"
 
 export default function AddBook() {
@@ -62,13 +63,14 @@ export default function AddBook() {
   const conditions = ["New", "Good", "Worn"]
 
   return (
-    <div className="min-h-screen bg-gray-900 py-12">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-8">
-          <div className="flex items-center mb-6">
-            <BookOpen className="h-8 w-8 text-emerald-400 mr-3" />
-            <h1 className="text-3xl font-bold text-white">Add a New Book</h1>
-          </div>
+    <AuthWrapper>
+      <div className="min-h-screen bg-gray-900 py-12">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-8">
+            <div className="flex items-center mb-6">
+              <BookOpen className="h-8 w-8 text-emerald-400 mr-3" />
+              <h1 className="text-3xl font-bold text-white">Add a New Book</h1>
+            </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {submitError && (
@@ -187,5 +189,6 @@ export default function AddBook() {
         </div>
       </div>
     </div>
+    </AuthWrapper>
   )
 }

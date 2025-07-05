@@ -75,6 +75,15 @@ export interface ApiNotification extends Omit<Notification, 'createdAt'> {
   createdAt: string
 }
 
+export interface ApiChatThread extends Omit<ChatThread, 'createdAt' | 'updatedAt'> {
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ApiChatMessage extends Omit<ChatMessage, 'createdAt'> {
+  createdAt: string
+}
+
 // Utility function for safe date handling in components
 export function formatTimeAgo(date: Date | string): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date
@@ -149,4 +158,22 @@ export interface Chat {
 
 export interface ApiChat extends Omit<Chat, 'lastMessageTime'> {
   lastMessageTime: string
+}
+
+export interface ChatThread {
+  id: string
+  bookId: string
+  participantAId: string
+  participantBId: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface ChatMessage {
+  id: string
+  threadId: string
+  senderId: string
+  message: string
+  createdAt: Date
+  isRead: boolean
 }

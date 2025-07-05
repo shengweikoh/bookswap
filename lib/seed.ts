@@ -351,12 +351,241 @@ export async function seedDatabase() {
 
     console.log(`Created ${notifications.length} notifications`);
 
+    // Create sample chat threads
+    const chatThreads = [
+      {
+        id: "thread1",
+        bookId: "1", // The Great Gatsby
+        participantAId: user1.id, // John (book owner)
+        participantBId: user2.id, // Jane (interested user)
+      },
+      {
+        id: "thread2", 
+        bookId: "3", // Dune
+        participantAId: user1.id, // John (book owner)
+        participantBId: user3.id, // Sarah (interested user)
+      },
+      {
+        id: "thread3",
+        bookId: "2", // To Kill a Mockingbird
+        participantAId: user2.id, // Jane (book owner)
+        participantBId: user1.id, // John (interested user)
+      },
+      {
+        id: "thread4",
+        bookId: "4", // The Seven Husbands of Evelyn Hugo
+        participantAId: user3.id, // Sarah (book owner)
+        participantBId: user1.id, // John (interested user)
+      },
+      {
+        id: "thread5",
+        bookId: "5", // Atomic Habits
+        participantAId: user4.id, // Mike (book owner)
+        participantBId: user1.id, // John (interested user)
+      },
+    ];
+
+    for (const thread of chatThreads) {
+      await prisma.chatThread.upsert({
+        where: { id: thread.id },
+        update: {},
+        create: thread,
+      });
+    }
+
+    console.log(`Created ${chatThreads.length} chat threads`);
+
+    // Create sample chat messages
+    const chatMessages = [
+      // Conversation 1: John & Jane about The Great Gatsby
+      {
+        id: "msg1",
+        threadId: "thread1",
+        senderId: user2.id, // Jane
+        message: "Hi! I'm really interested in 'The Great Gatsby'. Is it still available for exchange?",
+        isRead: true,
+        createdAt: new Date("2024-12-01T10:00:00Z"),
+      },
+      {
+        id: "msg2",
+        threadId: "thread1",
+        senderId: user1.id, // John
+        message: "Hi Jane! Yes, it's still available. It's in good condition with minimal wear. What book were you thinking of exchanging?",
+        isRead: true,
+        createdAt: new Date("2024-12-01T10:15:00Z"),
+      },
+      {
+        id: "msg3",
+        threadId: "thread1",
+        senderId: user2.id, // Jane
+        message: "I have 'To Kill a Mockingbird' in excellent condition, or 'The Handmaid's Tale' if you prefer something more contemporary.",
+        isRead: true,
+        createdAt: new Date("2024-12-01T10:30:00Z"),
+      },
+      {
+        id: "msg4",
+        threadId: "thread1",
+        senderId: user1.id, // John
+        message: "To Kill a Mockingbird sounds perfect! I've been wanting to read that. When would be a good time to meet?",
+        isRead: false,
+        createdAt: new Date("2024-12-01T11:00:00Z"),
+      },
+
+      // Conversation 2: John & Sarah about Dune
+      {
+        id: "msg5",
+        threadId: "thread2",
+        senderId: user3.id, // Sarah
+        message: "Hey! I saw your listing for Dune. I'm a huge sci-fi fan and have been dying to read it!",
+        isRead: true,
+        createdAt: new Date("2024-11-30T14:00:00Z"),
+      },
+      {
+        id: "msg6",
+        threadId: "thread2",
+        senderId: user1.id, // John
+        message: "Hi Sarah! Dune is an amazing book - one of my all-time favorites. It's yours if you have something good to trade!",
+        isRead: true,
+        createdAt: new Date("2024-11-30T14:20:00Z"),
+      },
+      {
+        id: "msg7",
+        threadId: "thread2",
+        senderId: user3.id, // Sarah
+        message: "I have 'The Seven Husbands of Evelyn Hugo' and 'The Midnight Library' - both in great condition. Any interest?",
+        isRead: true,
+        createdAt: new Date("2024-11-30T15:00:00Z"),
+      },
+      {
+        id: "msg8",
+        threadId: "thread2",
+        senderId: user1.id, // John
+        message: "The Seven Husbands of Evelyn Hugo sounds intriguing! I'd love to trade for that. Are you free this weekend?",
+        isRead: true,
+        createdAt: new Date("2024-11-30T15:30:00Z"),
+      },
+      {
+        id: "msg9",
+        threadId: "thread2",
+        senderId: user3.id, // Sarah
+        message: "Perfect! How about Saturday afternoon at the Starbucks on Main Street?",
+        isRead: false,
+        createdAt: new Date("2024-12-01T09:00:00Z"),
+      },
+
+      // Conversation 3: Jane & John about To Kill a Mockingbird
+      {
+        id: "msg10",
+        threadId: "thread3",
+        senderId: user1.id, // John
+        message: "Hi Jane! I noticed you have 'To Kill a Mockingbird'. Would you be interested in trading it?",
+        isRead: true,
+        createdAt: new Date("2024-11-29T16:00:00Z"),
+      },
+      {
+        id: "msg11",
+        threadId: "thread3",
+        senderId: user2.id, // Jane
+        message: "Hi John! Sure, I'd consider it. What do you have available?",
+        isRead: true,
+        createdAt: new Date("2024-11-29T16:30:00Z"),
+      },
+      {
+        id: "msg12",
+        threadId: "thread3",
+        senderId: user1.id, // John
+        message: "I have 'The Great Gatsby' and 'Dune'. Both are in good condition.",
+        isRead: false,
+        createdAt: new Date("2024-11-29T17:00:00Z"),
+      },
+
+      // Conversation 4: Sarah & John about The Seven Husbands of Evelyn Hugo
+      {
+        id: "msg13",
+        threadId: "thread4",
+        senderId: user1.id, // John
+        message: "Hi Sarah! I've heard amazing things about 'The Seven Husbands of Evelyn Hugo'. Is it as good as everyone says?",
+        isRead: true,
+        createdAt: new Date("2024-11-28T12:00:00Z"),
+      },
+      {
+        id: "msg14",
+        threadId: "thread4",
+        senderId: user3.id, // Sarah
+        message: "It's absolutely incredible! One of the best books I've read this year. The character development is phenomenal.",
+        isRead: true,
+        createdAt: new Date("2024-11-28T12:30:00Z"),
+      },
+      {
+        id: "msg15",
+        threadId: "thread4",
+        senderId: user1.id, // John
+        message: "That settles it - I need to read it! Would you be open to an exchange?",
+        isRead: true,
+        createdAt: new Date("2024-11-28T13:00:00Z"),
+      },
+      {
+        id: "msg16",
+        threadId: "thread4",
+        senderId: user3.id, // Sarah
+        message: "Definitely! What genres do you have? I'm always looking for good sci-fi or fantasy.",
+        isRead: false,
+        createdAt: new Date("2024-11-28T13:15:00Z"),
+      },
+
+      // Conversation 5: Mike & John about Atomic Habits
+      {
+        id: "msg17",
+        threadId: "thread5",
+        senderId: user1.id, // John
+        message: "Hey Mike! I'm trying to build better habits this year. How did you find 'Atomic Habits'?",
+        isRead: true,
+        createdAt: new Date("2024-11-27T20:00:00Z"),
+      },
+      {
+        id: "msg18",
+        threadId: "thread5",
+        senderId: user4.id, // Mike
+        message: "It's a game-changer! Really practical advice that actually works. I've built several new habits using his methods.",
+        isRead: true,
+        createdAt: new Date("2024-11-27T20:30:00Z"),
+      },
+      {
+        id: "msg19",
+        threadId: "thread5",
+        senderId: user1.id, // John
+        message: "That's exactly what I need to hear! Would you be willing to trade it?",
+        isRead: true,
+        createdAt: new Date("2024-11-27T21:00:00Z"),
+      },
+      {
+        id: "msg20",
+        threadId: "thread5",
+        senderId: user4.id, // Mike
+        message: "Sure! I'm looking for some good fiction or sci-fi. What do you have?",
+        isRead: false,
+        createdAt: new Date("2024-11-27T21:15:00Z"),
+      },
+    ];
+
+    for (const message of chatMessages) {
+      await prisma.chatMessage.upsert({
+        where: { id: message.id },
+        update: {},
+        create: message,
+      });
+    }
+
+    console.log(`Created ${chatMessages.length} chat messages`);
+
     console.log("Database seeded successfully!");
     console.log("\nSample users created:");
     console.log("- john@example.com (password: password123)");
     console.log("- jane@example.com (password: password123)");
     console.log("- sarah@example.com (password: password123)");
     console.log("- mike@example.com (password: password123)");
+    console.log("\nChat conversations created for user1 (John) with all other users!");
+    console.log("Log in as john@example.com to see the chat interface with sample conversations.");
     
   } catch (error) {
     console.error("Error seeding database:", error);
@@ -370,6 +599,8 @@ export async function clearDatabase() {
     console.log("Clearing database...");
     
     // Delete in order to respect foreign key constraints
+    await prisma.chatMessage.deleteMany();
+    await prisma.chatThread.deleteMany();
     await prisma.notification.deleteMany();
     await prisma.exchangeRequest.deleteMany();
     await prisma.book.deleteMany();

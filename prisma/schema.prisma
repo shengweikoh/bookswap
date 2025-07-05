@@ -24,6 +24,9 @@ model User {
   exchangeRequestsMade     ExchangeRequest[] @relation("RequesterExchanges")
   exchangeRequestsReceived ExchangeRequest[] @relation("OwnerExchanges")
   notifications    Notification[]
+  chatThreadsAsA   ChatThread[] @relation("ParticipantA")
+  chatThreadsAsB   ChatThread[] @relation("ParticipantB")
+  chatMessages     ChatMessage[]
 }
 
 model Book {
@@ -42,6 +45,7 @@ model Book {
   // Relations
   owner            User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   exchangeRequests ExchangeRequest[]
+  chatThreads      ChatThread[]
 }
 
 model ExchangeRequest {
@@ -94,4 +98,32 @@ enum NotificationType {
   follow
   listing
   welcome
+}
+
+model ChatThread {
+  id             String        @id @default(uuid())
+  bookId         String
+  participantAId String
+  participantBId String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  // Relations
+  messages       ChatMessage[]
+  book           Book          @relation(fields: [bookId], references: [id])
+  participantA   User          @relation("ParticipantA", fields: [participantAId], references: [id])
+  participantB   User          @relation("ParticipantB", fields: [participantBId], references: [id])
+}
+
+model ChatMessage {
+  id        String      @id @default(uuid())
+  threadId  String
+  senderId  String
+  message   String
+  isRead    Boolean     @default(false)
+  createdAt DateTime    @default(now())
+
+  // Relations
+  thread    ChatThread  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender    User        @relation(fields: [senderId], references: [id])
 }

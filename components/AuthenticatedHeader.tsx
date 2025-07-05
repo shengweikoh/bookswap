@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { BookOpen, User, Plus, Search, LogOut, List, ChevronDown } from "lucide-react"
+import { BookOpen, User, Plus, Search, LogOut, List, ChevronDown, MessageSquare } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import NotificationDropdown from "./NotificationDropdown"
 import ChatDropdown from "./ChatDropdown"
@@ -116,6 +116,13 @@ export default function AuthenticatedHeader() {
                   >
                     <List className="h-4 w-4" />
                     <span>My Postings</span>
+                  </Link>
+                  <Link
+                    href="/my-chats"
+                    className="flex items-center space-x-2 px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    <span>My Chats</span>
                   </Link>
                   <hr className="my-2 border-gray-700" />
                   <button

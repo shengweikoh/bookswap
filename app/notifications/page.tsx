@@ -3,8 +3,16 @@
 import { useState, useEffect } from "react"
 import { Clock, User, BookOpen, Bell, Check, X } from "lucide-react"
 import { apiService } from "@/lib/api"
-import { formatTimeAgo } from "@/lib/types"
-import type { Notification } from "@/lib/types"
+
+interface Notification {
+  id: string
+  title: string
+  message: string
+  type: "exchange" | "accepted" | "rejected" | "completed" | "profile" | "follow" | "listing" | "welcome"
+  isRead: boolean
+  createdAt: string
+  relatedId?: string
+}
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -73,6 +81,18 @@ export default function Notifications() {
       default:
         return <Bell className="h-5 w-5 text-gray-400" />
     }
+  }
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+    if (diffInSeconds < 60) return "Just now"
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`
+    return `${Math.floor(diffInSeconds / 604800)} weeks ago`
   }
 
   const handleNotificationClick = (notification: Notification) => {
