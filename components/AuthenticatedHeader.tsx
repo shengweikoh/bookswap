@@ -2,13 +2,17 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { BookOpen, User, Plus, Search, LogOut, List } from "lucide-react"
+import { BookOpen, User, Plus, Search, LogOut, List, ChevronDown } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
 import NotificationDropdown from "./NotificationDropdown"
+import ChatDropdown from "./ChatDropdown"
 import { apiService } from "@/lib/api"
 
 export default function AuthenticatedHeader() {
   const pathname = usePathname()
   const router = useRouter()
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const isActive = (path: string) => {
     return pathname === path ? "text-emerald-400 border-b-2 border-emerald-400" : "text-gray-300 hover:text-white"
@@ -25,6 +29,29 @@ export default function AuthenticatedHeader() {
       router.push("/login")
     }
   }
+
+  const toggleProfileDropdown = () => {
+    setIsProfileDropdownOpen(!isProfileDropdownOpen)
+  }
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsProfileDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
+
+  // Close dropdown when pathname changes
+  useEffect(() => {
+    setIsProfileDropdownOpen(false)
+  }, [pathname])
 
   return (
     <header className="bg-gray-900 shadow-lg border-b border-gray-700 sticky top-0 z-40">
@@ -45,29 +72,62 @@ export default function AuthenticatedHeader() {
               <Search className="h-4 w-4" />
               <span>Browse Books</span>
             </Link>
-            <Link href="/add-book" className={`flex items-center space-x-1 px-3 py-2 ${isActive("/add-book")}`}>
+            <Link 
+              href="/add-book" 
+              className={`flex items-center space-x-1 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium transition-colors ${
+                pathname === "/add-book" ? "bg-emerald-700 shadow-lg border-b-2 border-white" : ""
+              }`}
+            >
               <Plus className="h-4 w-4" />
               <span>Add Book</span>
-            </Link>
-            <Link href="/my-listings" className={`flex items-center space-x-1 px-3 py-2 ${isActive("/my-listings")}`}>
-              <List className="h-4 w-4" />
-              <span>My Postings</span>
-            </Link>
-            <Link href="/profile" className={`flex items-center space-x-1 px-3 py-2 ${isActive("/profile")}`}>
-              <User className="h-4 w-4" />
-              <span>Profile</span>
             </Link>
           </nav>
 
           <div className="flex items-center space-x-4">
             <NotificationDropdown />
-            <button
-              onClick={handleLogout}
-              className="flex items-center space-x-2 text-gray-300 hover:text-red-400 transition-colors"
-            >
-              <LogOut className="h-5 w-5" />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
+            <ChatDropdown />
+            
+            {/* Profile Dropdown */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={toggleProfileDropdown}
+                className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800"
+                aria-expanded={isProfileDropdownOpen}
+                aria-haspopup="true"
+                aria-label="Profile menu"
+              >
+                <User className="h-5 w-5" />
+                <ChevronDown className={`h-4 w-4 transition-transform ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Dropdown Menu */}
+              {isProfileDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700 py-2 z-50">
+                  <Link
+                    href="/profile"
+                    className="flex items-center space-x-2 px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+                  >
+                    <User className="h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
+                  <Link
+                    href="/my-listings"
+                    className="flex items-center space-x-2 px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+                  >
+                    <List className="h-4 w-4" />
+                    <span>My Postings</span>
+                  </Link>
+                  <hr className="my-2 border-gray-700" />
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center space-x-2 px-4 py-2 text-gray-300 hover:text-red-400 hover:bg-gray-700 transition-colors w-full text-left"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

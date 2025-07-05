@@ -133,3 +133,20 @@ export interface BookRequest {
 export interface ExchangeRequestPayload {
   bookId: string
 }
+
+export interface Chat {
+  id: string
+  bookId: string
+  bookTitle: string
+  bookImage: string | null
+  otherUserId: string
+  otherUserName: string
+  otherUserAvatar: string | null
+  lastMessage: string
+  lastMessageTime: Date
+  isRead: boolean
+}
+
+export interface ApiChat extends Omit<Chat, 'lastMessageTime'> {
+  lastMessageTime: string
+}
