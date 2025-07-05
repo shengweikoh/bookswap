@@ -28,6 +28,12 @@ interface ExchangeRequest {
   createdAt: Date
 }
 
+interface BookInfo {
+  id: string
+  title: string
+  isAvailable: boolean
+}
+
 function MyChatContent() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const searchParams = useSearchParams()
@@ -41,6 +47,8 @@ function MyChatContent() {
   const [showChatList, setShowChatList] = useState(true)
   const [exchangeRequest, setExchangeRequest] = useState<ExchangeRequest | null>(null)
   const [exchangeRequestLoading, setExchangeRequestLoading] = useState(false)
+  const [bookInfo, setBookInfo] = useState<BookInfo | null>(null)
+  const [bookInfoLoading, setBookInfoLoading] = useState(false)
   const [chatDataReady, setChatDataReady] = useState(false)
   const [userDataValidated, setUserDataValidated] = useState(false)
   const [conversationSwitching, setConversationSwitching] = useState(false)
@@ -74,6 +82,8 @@ function MyChatContent() {
       setMessages([])
       setExchangeRequest(null)
       setExchangeRequestLoading(false)
+      setBookInfo(null)
+      setBookInfoLoading(false)
       
       // Step 1: Validate user data is properly loaded
       const validateUserData = async () => {
@@ -91,7 +101,8 @@ function MyChatContent() {
           // Step 2: After user validation, fetch chat data
           await Promise.all([
             fetchMessages(selectedChat.id),
-            fetchExchangeRequest(selectedChat.bookId)
+            fetchExchangeRequest(selectedChat.bookId),
+            fetchBookInfo(selectedChat.bookId)
           ])
           
         } catch (error) {
@@ -312,6 +323,47 @@ function MyChatContent() {
     }
   }
 
+  const fetchBookInfo = async (bookId: string) => {
+    if (!bookId || !isAuthenticated || !user) {
+      console.log('Invalid bookId or user not authenticated, skipping book info fetch')
+      setBookInfo(null)
+      return
+    }
+
+    // Ensure user data is validated before proceeding
+    if (!userDataValidated && !conversationSwitching) {
+      return
+    }
+
+    try {
+      setBookInfoLoading(true)
+      
+      // Fetch book info from API
+      const response = await fetch(`/api/books/${bookId}`, {
+        method: 'GET',
+        credentials: 'include',
+      })
+
+      if (response.ok) {
+        const bookData = await response.json()
+        const bookInfoData = {
+          id: bookData.id,
+          title: bookData.title,
+          isAvailable: bookData.isAvailable
+        }
+        
+        setBookInfo(bookInfoData)
+      } else {
+        setBookInfo(null)
+      }
+    } catch (error) {
+      console.error("Failed to fetch book info:", error)
+      setBookInfo(null)
+    } finally {
+      setBookInfoLoading(false)
+    }
+  }
+
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedChat) return
 
@@ -455,7 +507,7 @@ function MyChatContent() {
     if (!selectedChat || !isAuthenticated || !user || !selectedChat.bookId) return null
 
     // Show loading spinner while user data is being validated or chat data is being fetched
-    if (conversationSwitching || !userDataValidated || exchangeRequestLoading || !chatDataReady) {
+    if (conversationSwitching || !userDataValidated || exchangeRequestLoading || bookInfoLoading || !chatDataReady) {
       return (
         <div className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-gray-600 text-white rounded-lg">
           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
@@ -464,7 +516,19 @@ function MyChatContent() {
       )
     }
 
-    // No exchange request exists - show Request Exchange button
+    // Step 1: Check if listing is unavailable
+    if (bookInfo && !bookInfo.isAvailable) {
+      return (
+        <button
+          disabled
+          className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-gray-500 text-gray-300 rounded-lg cursor-not-allowed"
+        >
+          <span>Unavailable</span>
+        </button>
+      )
+    }
+
+    // Step 2: Check if there is an existing exchange request
     if (!exchangeRequest) {
       return (
         <button
@@ -476,72 +540,65 @@ function MyChatContent() {
       )
     }
 
-    // Exchange request exists - show different buttons based on status and user role
-    const isRequester = exchangeRequest.requesterId === user.id
-    const bookOwnerInitiated = exchangeRequest.requesterId === exchangeRequest.ownerId
-    
-    // Determine who can accept/reject:
-    // - If book owner initiated: Other user (non-owner) can accept/reject
-    // - If non-owner initiated: Book owner can accept/reject
-    const canAcceptReject = bookOwnerInitiated ? !isRequester : (exchangeRequest.ownerId === user.id)
-
-    switch (exchangeRequest.status) {
-      case 'pending':
-        if (isRequester) {
-          // User who initiated the request sees yellow "Exchange Requested" button
-          return (
-            <button
-              disabled
-              className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-yellow-600 text-white rounded-lg cursor-not-allowed"
-            >
-              <span>Exchange Requested</span>
-            </button>
-          )
-        } else if (canAcceptReject) {
-          // User who can accept/reject sees Accept/Reject buttons
-          return (
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={handleAcceptExchange}
-                className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                <span>Accept Exchange</span>
-              </button>
-              <button
-                onClick={handleRejectExchange}
-                className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                <span>Reject Exchange</span>
-              </button>
-            </div>
-          )
-        }
-        break
-
-      case 'accepted':
-        return (
-          <button
-            disabled
-            className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-green-600 text-white rounded-lg cursor-not-allowed"
-          >
-            <span>Exchange Accepted</span>
-          </button>
-        )
-
-      case 'rejected':
-        return (
-          <button
-            disabled
-            className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-red-600 text-white rounded-lg cursor-not-allowed"
-          >
-            <span>Exchange Rejected</span>
-          </button>
-        )
-
-      default:
-        return null
+    // Step 3: Check if exchange request status is "accepted" or "rejected"
+    if (exchangeRequest.status === 'accepted') {
+      return (
+        <button
+          disabled
+          className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-green-600 text-white rounded-lg cursor-not-allowed"
+        >
+          <span>Exchange Accepted</span>
+        </button>
+      )
     }
 
+    if (exchangeRequest.status === 'rejected') {
+      return (
+        <button
+          disabled
+          className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-red-600 text-white rounded-lg cursor-not-allowed"
+        >
+          <span>Exchange Rejected</span>
+        </button>
+      )
+    }
+
+    // Step 4: Exchange request status is "pending" - check if current user is the requester
+    if (exchangeRequest.status === 'pending') {
+      const isRequester = exchangeRequest.requesterId === user.id
+
+      if (isRequester) {
+        // Current user is the requester - show yellow "Exchange Requested" button
+        return (
+          <button
+            disabled
+            className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-yellow-600 text-white rounded-lg cursor-not-allowed"
+          >
+            <span>Exchange Requested</span>
+          </button>
+        )
+      } else {
+        // Current user is NOT the requester - show Accept/Reject buttons
+        return (
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handleAcceptExchange}
+              className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <span>Accept Exchange</span>
+            </button>
+            <button
+              onClick={handleRejectExchange}
+              className="flex items-center space-x-1 px-3 py-1.5 text-xs lg:text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              <span>Reject Exchange</span>
+            </button>
+          </div>
+        )
+      }
+    }
+
+    // Fallback (should not reach here)
     return null
   }
 

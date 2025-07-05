@@ -6,17 +6,12 @@ A modern web application for book lovers to exchange books with each other, buil
 
 **This project is designed to be easily transferable to other developers.**
 
-### For New Developers:
-1. **Clone the repository**
-2. **Run `./start.sh`** - That's it!
-3. **Access the app** at http://localhost:3000
-
 ### What You Get:
 - ✅ **Complete Docker setup** - No local dependencies needed
 - ✅ **Auto database setup** - PostgreSQL with schema and seed data
 - ✅ **One-command startup** - `./start.sh` handles everything
 - ✅ **Health checks** - `./health-check.sh` verifies everything works
-- ✅ **Comprehensive docs** - README.md and .env.example
+- ✅ **Comprehensive docs** - README.md with complete setup instructions
 
 ### Quick Commands:
 ```bash
@@ -62,6 +57,41 @@ The application comes pre-loaded with:
 You can use these accounts to test the application:
 - **User 1**: john@example.com / password123
 - **User 2**: jane@example.com / password123
+
+## 🌟 Features
+
+### 📚 Book Management
+- **Add Books**: List your books for exchange with photos, descriptions, and condition ratings
+- **Book Catalog**: Browse available books with search and filtering capabilities
+- **Book Details**: View detailed information including condition, genre, and owner details
+- **Availability Status**: Books automatically marked as unavailable when exchanged
+
+### 🔄 Exchange System
+- **Exchange Requests**: Send and receive book exchange requests
+- **Request Management**: Accept, reject, or cancel exchange requests
+- **Exchange History**: Track all past and current exchanges
+- **Smart Matching**: See personalized book recommendations based on your interests
+
+### 💬 Communication
+- **Real-time Chat**: Built-in messaging system for coordinating exchanges
+- **Exchange-specific Conversations**: Separate chat threads for each exchange request
+- **Message History**: Persistent chat history for all conversations
+
+### 🔔 Notifications
+- **Real-time Notifications**: Instant alerts for new messages and exchange activities
+- **Notification Center**: Centralized view of all notifications
+- **Activity Tracking**: Get notified when books are requested, accepted, or rejected
+
+### 👤 User Profiles
+- **Profile Management**: Update personal information, bio, and reading preferences
+- **User Libraries**: View other users' available books
+- **Reading Interests**: Specify favorite genres and authors for better recommendations
+
+### 🎨 User Experience
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
+- **Modern UI**: Clean, intuitive interface built with Tailwind CSS
+- **Fast Loading**: Optimized performance with Next.js and efficient data fetching
+- **Secure Authentication**: JWT-based authentication with password hashing
 
 ## 🐳 Docker Setup
 
@@ -140,7 +170,6 @@ docker compose exec app bash
 bookswap/
 ├── start.sh              # One-command setup script
 ├── health-check.sh       # Health check script
-├── .env.example          # Environment variables template
 ├── docker-compose.yml    # Docker services configuration
 ├── Dockerfile           # App container configuration
 ├── app/                 # Next.js app directory
@@ -166,21 +195,37 @@ bookswap/
 # Access the database directly
 docker compose exec db psql -U bookswap_user -d bookswap_db
 
-# Seed database with sample data
-docker compose exec app npm run seed
-
-# Reset database (clear and reseed)
-docker compose exec app npm run seed:reset
-
-# Clear all database data
-docker compose exec app npm run seed:clear
-
 # Reset database schema (careful - this deletes all data!)
 docker compose exec app npx prisma db push --force-reset
 
 # Generate Prisma client after schema changes
 docker compose exec app npx prisma generate
 ```
+
+### Database Seeding with Docker
+
+The application includes Docker-specific seeding commands for easy database management:
+
+```bash
+# Seed database with sample data
+docker compose exec app npm run seed
+
+# Reset database (clear and reseed) - RECOMMENDED
+docker compose exec app npm run seed:reset
+
+# Clear all database data
+docker compose exec app npm run seed:clear
+```
+
+**Docker-specific seeding commands:**
+```bash
+# Alternative Docker seeding methods
+npm run seed:docker        # Seed using Docker
+npm run seed:reset:docker   # Reset seed using Docker  
+npm run seed:clear:docker   # Clear seed using Docker
+```
+
+**Note:** The Docker seeding commands automatically use the environment variables configured in `docker-compose.yml`, so no additional configuration is needed.
 
 ### Database Seeding
 
@@ -194,16 +239,19 @@ npm run seed:clear  # Remove all data from database
 ```
 
 **Sample Data Includes:**
-- 4 sample users with different reading preferences
-- 8 books across various genres and conditions
-- Exchange requests in different states
-- Notification examples
+- **4 sample users** with different reading preferences and profiles
+- **8 books** across various genres (Fiction, Non-Fiction, Science, History, etc.)
+- **Books in different conditions** (Like New, Good, Fair)
+- **Exchange requests** in different states (pending, accepted, rejected)
+- **Chat messages** between users for active exchanges
+- **Notifications** for various exchange activities
+- **User profiles** with bio, location, and reading interests
 
 **Sample Login Credentials:**
-- `john@example.com` / `password123`
-- `jane@example.com` / `password123`
-- `sarah@example.com` / `password123`
-- `mike@example.com` / `password123`
+- `john@example.com` / `password123` - Fiction lover with 3 books
+- `jane@example.com` / `password123` - Science enthusiast with 2 books  
+- `sarah@example.com` / `password123` - History buff with 2 books
+- `mike@example.com` / `password123` - Non-fiction reader with 1 book
 
 ### Useful Commands
 
@@ -227,16 +275,6 @@ Run the health check script to verify everything is working:
 ```bash
 ./health-check.sh
 ```
-
-## 🌟 Features
-
-- **Book Exchange**: Users can list books for exchange
-- **User Authentication**: Secure login and registration
-- **Book Browsing**: Search and filter available books
-- **Exchange Requests**: Send and manage book exchange requests
-- **Notifications**: Real-time notifications for exchange activities
-- **User Profiles**: Manage personal information and book collections
-- **Responsive Design**: Works on desktop and mobile
 
 ## 🚨 Troubleshooting
 

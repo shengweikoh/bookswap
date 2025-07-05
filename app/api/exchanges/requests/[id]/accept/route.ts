@@ -70,6 +70,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       data: { status: 'accepted' }
     })
 
+    // Mark the book as unavailable since the exchange has been accepted
+    await prisma.book.update({
+      where: { id: exchangeRequest.bookId },
+      data: { isAvailable: false }
+    })
+
     // Create notification for the person who initiated the request
     // They should be notified that their request was accepted
     const notificationUserId = exchangeRequest.requesterId;

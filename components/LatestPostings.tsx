@@ -18,7 +18,8 @@ export default function LatestPostings() {
 
   const fetchLatestBooks = async () => {
     try {
-      const result = await apiService.getBooks({ size: 4 })
+      // Only fetch available books for latest postings
+      const result = await apiService.getBooks({ size: 4, available: true })
       if (result.success && result.data) {
         setBooks(result.data.books)
       }
@@ -45,7 +46,7 @@ export default function LatestPostings() {
   if (loading) {
     return (
       <section className="mb-12">
-        <h2 className="text-2xl font-bold text-white mb-6">Latest Postings</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">Latest Available Books</h2>
         <div className="text-gray-400">Loading latest books...</div>
       </section>
     )
@@ -54,7 +55,7 @@ export default function LatestPostings() {
   if (books.length === 0) {
     return (
       <section className="mb-12">
-        <h2 className="text-2xl font-bold text-white mb-6">Latest Postings</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">Latest Available Books</h2>
         <div className="text-gray-400">No books available</div>
       </section>
     )
@@ -62,7 +63,7 @@ export default function LatestPostings() {
 
   return (
     <section className="mb-12">
-      <h2 className="text-2xl font-bold text-white mb-6">Latest Postings</h2>
+      <h2 className="text-2xl font-bold text-white mb-6">Latest Available Books</h2>
 
       <div className="grid gap-4">
         {books.map((book) => (

@@ -17,9 +17,44 @@ export default function YouMayLike() {
 
   const fetchRecommendedBooks = async () => {
     try {
-      const result = await apiService.getBooks({ size: 4, available: true })
-      if (result.success && result.data) {
-        setBooks(result.data.books)
+      // Get current user's interested genres
+      const currentUser = apiService.getCurrentUser()
+      const interestedGenres = currentUser?.interestedGenres || []
+      const currentUserId = currentUser?.id
+
+      let allRecommendedBooks: BookWithOwner[] = []
+
+      if (interestedGenres.length > 0) {
+        // Fetch books for each interested genre
+        for (const genre of interestedGenres) {
+          const result = await apiService.getBooks({ 
+            genre, 
+            available: true,
+            size: 8 // Get more books to have variety
+          })
+          
+          if (result.success && result.data) {
+            allRecommendedBooks = [...allRecommendedBooks, ...result.data.books]
+          }
+        }
+
+        // Remove duplicates, user's own books, and shuffle
+        const uniqueBooks = allRecommendedBooks.filter((book, index, self) => 
+          index === self.findIndex(b => b.id === book.id) &&
+          book.ownerId !== currentUserId // Exclude user's own books
+        )
+        
+        // Shuffle array and take first 6 books
+        const shuffled = uniqueBooks.sort(() => Math.random() - 0.5)
+        setBooks(shuffled.slice(0, 6))
+      } else {
+        // Fallback: get random available books if user has no interested genres
+        const result = await apiService.getBooks({ size: 8, available: true })
+        if (result.success && result.data) {
+          // Filter out user's own books
+          const filtered = result.data.books.filter(book => book.ownerId !== currentUserId)
+          setBooks(filtered.slice(0, 6))
+        }
       }
     } catch (error) {
       console.error("Failed to fetch recommended books:", error)
@@ -50,7 +85,7 @@ export default function YouMayLike() {
     return (
       <section className="mb-12">
         <h2 className="text-2xl font-bold text-white mb-6">You May Like</h2>
-        <div className="text-gray-400">Loading recommendations...</div>
+        <div className="text-gray-400">Finding books you might enjoy...</div>
       </section>
     )
   }
@@ -59,7 +94,9 @@ export default function YouMayLike() {
     return (
       <section className="mb-12">
         <h2 className="text-2xl font-bold text-white mb-6">You May Like</h2>
-        <div className="text-gray-400">No recommendations available</div>
+        <div className="text-gray-400">
+          No recommendations available. Try updating your reading preferences in your profile!
+        </div>
       </section>
     )
   }
@@ -67,7 +104,10 @@ export default function YouMayLike() {
   return (
     <section className="mb-12">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-white">You May Like</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-white">You May Like</h2>
+          <p className="text-gray-400 text-sm mt-1">Based on your reading preferences</p>
+        </div>
         <div className="flex space-x-2">
           <button 
             onClick={scrollLeft}

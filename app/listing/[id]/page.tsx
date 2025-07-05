@@ -174,6 +174,16 @@ export default function ListingDetails() {
                 >
                   {book.condition}
                 </span>
+                {/* Availability Badge */}
+                <span
+                  className={`px-3 py-1 text-sm font-medium rounded-full border ${
+                    book.isAvailable 
+                      ? "bg-green-900 text-green-300 border-green-700" 
+                      : "bg-red-900 text-red-300 border-red-700"
+                  }`}
+                >
+                  {book.isAvailable ? "Available" : "Unavailable"}
+                </span>
               </div>
 
               {/* Description */}
@@ -212,16 +222,22 @@ export default function ListingDetails() {
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={handleChatClick}
-                    disabled={!!isOwner}
+                    disabled={!!isOwner || !book.isAvailable}
                     className={`flex-1 px-6 py-3 rounded-md font-medium flex items-center justify-center space-x-2 transition-colors ${
                       isOwner 
                         ? "bg-gray-600 text-gray-400 cursor-not-allowed" 
+                        : !book.isAvailable
+                        ? "bg-gray-600 text-gray-400 cursor-not-allowed"
                         : "bg-emerald-600 text-white hover:bg-emerald-700"
                     }`}
                   >
                     <MessageCircle className="h-5 w-5" />
                     <span>
-                      {isOwner ? "Your Listing" : `Chat with ${book.owner}`}
+                      {isOwner 
+                        ? "Your Listing" 
+                        : !book.isAvailable 
+                        ? "Book Unavailable" 
+                        : `Chat with ${book.owner}`}
                     </span>
                   </button>
 
@@ -247,7 +263,12 @@ export default function ListingDetails() {
               <div className="bg-gray-700 rounded-lg p-4">
                 <h3 className="text-lg font-semibold text-white mb-3">Exchange Information</h3>
                 <div className="space-y-2 text-sm text-gray-300">
-                  <p>• This book is {book.isAvailable ? "available" : "not available"} for exchange</p>
+                  <p className={`font-medium ${book.isAvailable ? "text-green-300" : "text-red-300"}`}>
+                    • This book is {book.isAvailable ? "available" : "no longer available"} for exchange
+                  </p>
+                  {!book.isAvailable && (
+                    <p className="text-red-300">• This book has been exchanged and is no longer available</p>
+                  )}
                   <p>• Contact owner for meetup details</p>
                   <p>• Response time: Usually within 24 hours</p>
                   <p>• Book condition: {book.condition}</p>
