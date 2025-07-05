@@ -27,12 +27,33 @@ export default function Home() {
 
   const fetchUserProfile = async () => {
     try {
-      const result = await apiService.getUserProfile()
-      if (result.success && result.data) {
-        setUser(result.data)
-        // Calculate stats from user's books and exchanges
-        const booksListed = result.data.books?.length || 0
-        const successfulSwaps = result.data.exchanges?.filter((ex: any) => ex.status === "completed")?.length || 0
+      const [profileResult, exchangeHistoryResult] = await Promise.all([
+        apiService.getUserProfile(),
+        apiService.getExchangeHistory()
+      ])
+      
+      if (profileResult.success && profileResult.data) {
+        setUser(profileResult.data)
+        
+        // Get user's books
+        const currentUser = apiService.getCurrentUser()
+        let booksListed = 0
+        let successfulSwaps = 0
+        
+        if (currentUser?.id) {
+          const booksResult = await apiService.getUserBooks(currentUser.id)
+          if (booksResult.success && booksResult.data) {
+            booksListed = booksResult.data.length
+          }
+        }
+        
+        // Count successful swaps from exchange history
+        if (exchangeHistoryResult.success && exchangeHistoryResult.data) {
+          successfulSwaps = exchangeHistoryResult.data.filter((exchange: any) => 
+            exchange.status === "accepted" && 
+            (exchange.requesterId === currentUser?.id || exchange.ownerId === currentUser?.id)
+          ).length
+        }
         
         setUserStats({
           booksListed,

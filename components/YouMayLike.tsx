@@ -17,7 +17,7 @@ export default function YouMayLike() {
 
   const fetchRecommendedBooks = async () => {
     try {
-      const result = await apiService.getBooks({ size: 4 })
+      const result = await apiService.getBooks({ size: 4, available: true })
       if (result.success && result.data) {
         setBooks(result.data.books)
       }

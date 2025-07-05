@@ -154,6 +154,51 @@ export async function seedDatabase() {
         image: null,
         isAvailable: false, // This one is being exchanged
       },
+      // Additional books for exchange history
+      {
+        id: "9",
+        title: "Pride and Prejudice",
+        author: "Jane Austen",
+        genre: "Classic Literature",
+        condition: "Good" as const,
+        description: "A romantic novel about Elizabeth Bennet and Mr. Darcy. A timeless classic exploring themes of love, class, and social expectations.",
+        ownerId: user3.id,
+        image: null,
+        isAvailable: false, // Exchanged
+      },
+      {
+        id: "10",
+        title: "The Catcher in the Rye",
+        author: "J.D. Salinger",
+        genre: "Classic Literature",
+        condition: "Worn" as const,
+        description: "A controversial coming-of-age novel about Holden Caulfield. A powerful exploration of teenage alienation and the loss of innocence.",
+        ownerId: user4.id,
+        image: null,
+        isAvailable: false, // Exchanged
+      },
+      {
+        id: "11",
+        title: "Harry Potter and the Philosopher's Stone",
+        author: "J.K. Rowling",
+        genre: "Fantasy",
+        condition: "Good" as const,
+        description: "The first book in the beloved Harry Potter series. A magical adventure that captivated readers of all ages.",
+        ownerId: user1.id,
+        image: null,
+        isAvailable: false, // Exchanged
+      },
+      {
+        id: "12",
+        title: "The Lord of the Rings",
+        author: "J.R.R. Tolkien",
+        genre: "Fantasy",
+        condition: "New" as const,
+        description: "Epic fantasy trilogy about the quest to destroy the One Ring. A masterpiece of world-building and storytelling.",
+        ownerId: user2.id,
+        image: null,
+        isAvailable: false, // Exchanged
+      },
     ];
 
     for (const book of books) {
@@ -173,7 +218,6 @@ export async function seedDatabase() {
         bookId: "1", // The Great Gatsby
         requesterId: user2.id, // Jane requesting
         ownerId: user1.id, // from John
-        message: "I'd love to read this classic! I have some great contemporary fiction to trade.",
         status: "pending" as const,
       },
       {
@@ -181,16 +225,77 @@ export async function seedDatabase() {
         bookId: "8", // 1984
         requesterId: user3.id, // Sarah requesting
         ownerId: user2.id, // from Jane
-        message: "This is on my reading list! Would you be interested in any contemporary fiction?",
         status: "accepted" as const,
       },
-    ];
+      // Completed exchanges for history
+      {
+        id: "exchange3",
+        bookId: "9", // Pride and Prejudice
+        requesterId: user1.id, // John requesting
+        ownerId: user3.id, // from Sarah
+        status: "accepted" as const,
+        createdAt: new Date("2024-11-28T09:15:00Z") as Date,
+        updatedAt: new Date("2024-11-28T10:15:00Z") as Date,
+      },
+      {
+        id: "exchange4",
+        bookId: "10", // The Catcher in the Rye
+        requesterId: user2.id, // Jane requesting
+        ownerId: user4.id, // from Mike
+        status: "accepted" as const,
+        createdAt: new Date("2024-11-20T11:00:00Z") as Date,
+        updatedAt: new Date("2024-11-20T12:00:00Z") as Date,
+      },
+      {
+        id: "exchange5",
+        bookId: "11", // Harry Potter
+        requesterId: user3.id, // Sarah requesting
+        ownerId: user1.id, // from John
+        status: "accepted" as const,
+        createdAt: new Date("2024-11-15T13:30:00Z") as Date,
+        updatedAt: new Date("2024-11-15T14:30:00Z") as Date,
+      },
+      {
+        id: "exchange6",
+        bookId: "12", // Lord of the Rings
+        requesterId: user4.id, // Mike requesting
+        ownerId: user2.id, // from Jane
+        status: "accepted" as const,
+        createdAt: new Date("2024-11-08T15:45:00Z") as Date,
+        updatedAt: new Date("2024-11-08T16:45:00Z") as Date,
+      },
+      {
+        id: "exchange7",
+        bookId: "3", // Dune (adding another exchange for variety)
+        requesterId: user4.id, // Mike requesting
+        ownerId: user1.id, // from John
+        status: "accepted" as const,
+        createdAt: new Date("2024-10-25T12:20:00Z") as Date,
+        updatedAt: new Date("2024-10-25T13:20:00Z") as Date,
+      },
+    ] as Array<{
+      id: string;
+      bookId: string;
+      requesterId: string;
+      ownerId: string;
+      status: "pending" | "accepted" | "rejected";
+      createdAt?: Date;
+      updatedAt?: Date;
+    }>;
 
     for (const request of exchangeRequests) {
       await prisma.exchangeRequest.upsert({
         where: { id: request.id },
         update: {},
-        create: request,
+        create: {
+          id: request.id,
+          bookId: request.bookId,
+          requesterId: request.requesterId,
+          ownerId: request.ownerId,
+          status: request.status,
+          ...(request.createdAt && { createdAt: request.createdAt }),
+          ...(request.updatedAt && { updatedAt: request.updatedAt }),
+        },
       });
     }
 

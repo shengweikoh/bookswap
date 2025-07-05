@@ -9,6 +9,7 @@ import { apiService } from "@/lib/api"
 export default function Profile() {
   const [userData, setUserData] = useState<any>(null)
   const [userBooks, setUserBooks] = useState<any[]>([])
+  const [successfulSwaps, setSuccessfulSwaps] = useState<number>(0)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -20,9 +21,10 @@ export default function Profile() {
   const fetchUserData = async () => {
     try {
       setLoading(true)
-      const [profileResult, currentUser] = await Promise.all([
+      const [profileResult, currentUser, exchangeHistoryResult] = await Promise.all([
         apiService.getUserProfile(),
-        apiService.getCurrentUser()
+        apiService.getCurrentUser(),
+        apiService.getExchangeHistory()
       ])
 
       if (profileResult.success && profileResult.data) {
@@ -33,6 +35,15 @@ export default function Profile() {
           const booksResult = await apiService.getUserBooks(currentUser.id)
           if (booksResult.success && booksResult.data) {
             setUserBooks(booksResult.data)
+          }
+          
+          // Calculate successful swaps
+          if (exchangeHistoryResult.success && exchangeHistoryResult.data) {
+            const swapCount = exchangeHistoryResult.data.filter((exchange: any) => 
+              exchange.status === "accepted" && 
+              (exchange.requesterId === currentUser.id || exchange.ownerId === currentUser.id)
+            ).length
+            setSuccessfulSwaps(swapCount)
           }
         }
       } else {
@@ -189,7 +200,7 @@ export default function Profile() {
                 <div className="flex items-center space-x-2">
                   <User className="h-5 w-5 text-indigo-400" />
                   <span className="font-semibold text-indigo-400">
-                    {userBooks.filter((book: any) => book.status === "Exchanged").length} Successful Exchanges
+                    {successfulSwaps} Successful Exchanges
                   </span>
                 </div>
               </div>
@@ -197,54 +208,74 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* My Books */}
+        {/* User Statistics */}
         <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-white mb-6">My Books</h2>
+          <h2 className="text-2xl font-bold text-white mb-6">Profile Statistics</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Total Books Listed */}
+            <div className="bg-gray-700 rounded-lg p-6 text-center">
+              <BookOpen className="h-8 w-8 text-emerald-400 mx-auto mb-3" />
+              <div className="text-2xl font-bold text-white mb-1">{userBooks.length}</div>
+              <div className="text-sm text-gray-400">Books Listed</div>
+            </div>
 
-          <div className="space-y-4">
-            {userBooks.map((book: any) => (
-              <div key={book.id} className="border border-gray-700 rounded-lg p-4 hover:bg-gray-750 transition-colors">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg text-white">{book.title}</h3>
-                    <p className="text-gray-400 mb-2">by {book.author}</p>
-                    <div className="flex space-x-2">
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full border ${getConditionColor(book.condition)}`}
-                      >
-                        {book.condition}
-                      </span>
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(book.isAvailable ? "Available" : "Exchanged")}`}
-                      >
-                        {book.isAvailable ? "Available" : "Exchanged"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 md:mt-0 flex space-x-2">
-                    <button className="px-4 py-2 text-sm font-medium text-emerald-400 bg-emerald-900 border border-emerald-700 rounded-md hover:bg-emerald-800 transition-colors">
-                      Edit
-                    </button>
-                    <button className="px-4 py-2 text-sm font-medium text-red-400 bg-red-900 border border-red-700 rounded-md hover:bg-red-800 transition-colors">
-                      Remove
-                    </button>
-                  </div>
-                </div>
+            {/* Available Books */}
+            <div className="bg-gray-700 rounded-lg p-6 text-center">
+              <div className="h-8 w-8 bg-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                <BookOpen className="h-4 w-4 text-white" />
               </div>
-            ))}
+              <div className="text-2xl font-bold text-white mb-1">
+                {userBooks.filter((book: any) => book.isAvailable).length}
+              </div>
+              <div className="text-sm text-gray-400">Available for Exchange</div>
+            </div>
+
+            {/* Successful Exchanges */}
+            <div className="bg-gray-700 rounded-lg p-6 text-center">
+              <div className="h-8 w-8 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                <User className="h-4 w-4 text-white" />
+              </div>
+              <div className="text-2xl font-bold text-white mb-1">
+                {successfulSwaps}
+              </div>
+              <div className="text-sm text-gray-400">Successful Exchanges</div>
+            </div>
+
+            {/* Member Since */}
+            <div className="bg-gray-700 rounded-lg p-6 text-center">
+              <Calendar className="h-8 w-8 text-purple-400 mx-auto mb-3" />
+              <div className="text-2xl font-bold text-white mb-1">
+                {userData.memberSince ? new Date(userData.memberSince).getFullYear() : 'N/A'}
+              </div>
+              <div className="text-sm text-gray-400">Member Since</div>
+            </div>
           </div>
 
-          {userBooks.length === 0 && (
-            <div className="text-center py-12">
-              <BookOpen className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg">You haven't listed any books yet.</p>
-              <button 
-                onClick={() => window.location.href = "/add-book"}
-                className="mt-4 bg-emerald-600 text-white px-6 py-2 rounded-md hover:bg-emerald-700 transition-colors"
-              >
-                List Your First Book
-              </button>
+          {/* Book Condition Breakdown */}
+          {userBooks.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold text-white mb-4">Book Condition Breakdown</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-gray-700 rounded-lg p-4 text-center">
+                  <div className="text-xl font-bold text-emerald-400 mb-1">
+                    {userBooks.filter((book: any) => book.condition === 'New').length}
+                  </div>
+                  <div className="text-sm text-gray-400">New Books</div>
+                </div>
+                <div className="bg-gray-700 rounded-lg p-4 text-center">
+                  <div className="text-xl font-bold text-yellow-400 mb-1">
+                    {userBooks.filter((book: any) => book.condition === 'Good').length}
+                  </div>
+                  <div className="text-sm text-gray-400">Good Condition</div>
+                </div>
+                <div className="bg-gray-700 rounded-lg p-4 text-center">
+                  <div className="text-xl font-bold text-red-400 mb-1">
+                    {userBooks.filter((book: any) => book.condition === 'Worn').length}
+                  </div>
+                  <div className="text-sm text-gray-400">Worn Books</div>
+                </div>
+              </div>
             </div>
           )}
         </div>

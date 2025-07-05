@@ -32,6 +32,7 @@ export async function getBooks(filters?: {
   genre?: string;
   condition?: "New" | "Good" | "Worn";
   ownerId?: string;
+  available?: boolean;
 }) {
   return prisma.book.findMany({
     where: {
@@ -44,6 +45,7 @@ export async function getBooks(filters?: {
       ...(filters?.genre && { genre: filters.genre }),
       ...(filters?.condition && { condition: filters.condition }),
       ...(filters?.ownerId && { ownerId: filters.ownerId }),
+      ...(filters?.available !== undefined && { isAvailable: filters.available }),
     },
     orderBy: { createdAt: "desc" },
   });

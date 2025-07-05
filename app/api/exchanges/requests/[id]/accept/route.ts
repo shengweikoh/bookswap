@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getExchangeRequestById, updateExchangeRequest, getBookById, getUserById, createNotification } from "@/lib/databaseService"
+import { getExchangeRequestById, updateExchangeRequest, getBookById, getUserById, createNotification, updateBook } from "@/lib/databaseService"
 import { verifyToken } from "@/lib/jwt"
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -27,6 +27,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
 
     const updatedRequest = await updateExchangeRequest(id, { status: "accepted" })
+
+    // Mark the book as unavailable since it's been exchanged
+    await updateBook(exchangeRequest.bookId, { isAvailable: false })
 
     // Create notification for requester
     const book = await getBookById(exchangeRequest.bookId)

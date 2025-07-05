@@ -16,10 +16,10 @@ export default function RecentSwaps() {
 
   const fetchRecentSwaps = async () => {
     try {
-      const result = await apiService.getExchangeHistory()
+      const result = await apiService.getRecentSwaps()
       if (result.success && result.data) {
-        // Get the most recent 3 swaps
-        setSwaps(result.data.slice(0, 3))
+        // Get the most recent 5 swaps
+        setSwaps(result.data.slice(0, 5))
       }
     } catch (error) {
       console.error("Failed to fetch recent swaps:", error)
@@ -68,7 +68,7 @@ export default function RecentSwaps() {
                   />
                   <div>
                     <p className="font-medium text-white">{swap.requester?.name || "User"}</p>
-                    <p className="text-sm text-gray-300">Requested exchange</p>
+                    <p className="text-sm text-gray-300">Exchanged with</p>
                   </div>
                 </div>
 
@@ -86,7 +86,7 @@ export default function RecentSwaps() {
                   />
                   <div>
                     <p className="font-medium text-white">{swap.owner?.name || "Owner"}</p>
-                    <p className="text-sm text-gray-300">{swap.book?.title || "Book"}</p>
+                    <p className="text-sm text-gray-300">for "{swap.book?.title || "Book"}"</p>
                   </div>
                 </div>
               </div>

@@ -35,7 +35,6 @@ export interface ExchangeRequest {
   bookId: string
   requesterId: string
   ownerId: string
-  message: string
   status: "pending" | "accepted" | "rejected"
   createdAt: Date
   updatedAt: Date
@@ -92,3 +91,45 @@ export function formatTimeAgo(date: Date | string): string {
 }
 
 // Use Prisma client from './prisma' for database operations
+
+// API Response Types
+export interface ApiResponse<T> {
+  success: boolean
+  data?: T
+  message?: string
+  error?: string
+}
+
+export interface LoginRequest {
+  email: string
+  password: string
+}
+
+export interface SignupRequest {
+  name: string
+  email: string
+  password: string
+}
+
+export interface AuthResponse {
+  token: string
+  user: {
+    id: string
+    name: string
+    email: string
+    avatar?: string
+  }
+}
+
+export interface BookRequest {
+  title: string
+  author: string
+  genre: string
+  condition: string
+  description: string
+  image?: string
+}
+
+export interface ExchangeRequestPayload {
+  bookId: string
+}

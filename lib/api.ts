@@ -1,47 +1,13 @@
+import type { 
+  ApiResponse, 
+  LoginRequest, 
+  SignupRequest, 
+  AuthResponse, 
+  BookRequest, 
+  ExchangeRequestPayload 
+} from './types'
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api"
-
-// Types for API responses
-export interface ApiResponse<T> {
-  success: boolean
-  data?: T
-  message?: string
-  error?: string
-}
-
-export interface LoginRequest {
-  email: string
-  password: string
-}
-
-export interface SignupRequest {
-  name: string
-  email: string
-  password: string
-}
-
-export interface AuthResponse {
-  token: string
-  user: {
-    id: string
-    name: string
-    email: string
-    avatar?: string
-  }
-}
-
-export interface BookRequest {
-  title: string
-  author: string
-  genre: string
-  condition: string
-  description: string
-  image?: string
-}
-
-export interface ExchangeRequestPayload {
-  bookId: string
-  message: string
-}
 
 // API Service Class
 class ApiService {
@@ -162,6 +128,7 @@ class ApiService {
     search?: string
     genre?: string
     condition?: string
+    available?: boolean
     page?: number
     size?: number
   }): Promise<ApiResponse<{ books: any[]; totalPages: number; totalElements: number }>> {
@@ -170,6 +137,7 @@ class ApiService {
       if (params?.search) queryParams.append("search", params.search)
       if (params?.genre) queryParams.append("genre", params.genre)
       if (params?.condition) queryParams.append("condition", params.condition)
+      if (params?.available !== undefined) queryParams.append("available", params.available.toString())
       if (params?.page) queryParams.append("page", params.page.toString())
       if (params?.size) queryParams.append("size", params.size.toString())
 
@@ -407,6 +375,22 @@ class ApiService {
       return {
         success: false,
         error: "Failed to fetch user books",
+      }
+    }
+  }
+
+  // Get recent swaps from all users (public activity)
+  async getRecentSwaps(): Promise<ApiResponse<any[]>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/exchanges/recent`, {
+        headers: this.getAuthHeaders(),
+      })
+
+      return await this.handleResponse(response)
+    } catch (error) {
+      return {
+        success: false,
+        error: "Failed to fetch recent swaps",
       }
     }
   }

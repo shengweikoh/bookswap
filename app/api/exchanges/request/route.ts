@@ -4,10 +4,10 @@ import { getBookById, getUserById, createExchangeRequest, createNotification } f
 
 export const POST = withAuth(async (req: AuthenticatedRequest) => {
   try {
-    const { bookId, message } = await req.json()
+    const { bookId } = await req.json()
 
-    if (!bookId || !message) {
-      return NextResponse.json({ error: "Book ID and message are required" }, { status: 400 })
+    if (!bookId) {
+      return NextResponse.json({ error: "Book ID is required" }, { status: 400 })
     }
 
     const book = await getBookById(bookId)
@@ -23,7 +23,6 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
       bookId,
       requesterId: req.user!.id,
       ownerId: book.ownerId,
-      message,
       status: "pending",
     })
 

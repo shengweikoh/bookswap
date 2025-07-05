@@ -4,22 +4,15 @@ import { prisma } from "@/lib/prisma"
 
 export const GET = withAuth(async (req: AuthenticatedRequest) => {
   try {
-    // Get exchange requests where the current user was either requester or owner
-    const exchangeHistory = await prisma.exchangeRequest.findMany({
+    // Get the most recent 5 accepted exchange requests from all users
+    const recentExchanges = await prisma.exchangeRequest.findMany({
       where: {
-        AND: [
-          { status: "accepted" },
-          {
-            OR: [
-              { requesterId: req.user!.id },
-              { ownerId: req.user!.id }
-            ]
-          }
-        ]
+        status: "accepted",
       },
       orderBy: {
         updatedAt: "desc",
       },
+      take: 5,
       include: {
         book: {
           select: {
@@ -46,9 +39,9 @@ export const GET = withAuth(async (req: AuthenticatedRequest) => {
       },
     })
 
-    return NextResponse.json(exchangeHistory)
+    return NextResponse.json(recentExchanges)
   } catch (error) {
-    console.error("Error fetching exchange history:", error)
+    console.error("Error fetching recent swaps:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 })

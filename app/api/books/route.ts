@@ -12,10 +12,12 @@ export const GET = withAuth(async (req: AuthenticatedRequest) => {
     const condition = (conditionParam && ["New", "Good", "Worn"].includes(conditionParam)) 
       ? conditionParam as "New" | "Good" | "Worn" 
       : undefined
+    const availableParam = searchParams.get("available")
+    const available = availableParam === "true" ? true : availableParam === "false" ? false : undefined
     const page = Number.parseInt(searchParams.get("page") || "0")
     const size = Number.parseInt(searchParams.get("size") || "20")
 
-    const allBooks = await getBooks({ search, genre, condition })
+    const allBooks = await getBooks({ search, genre, condition, available })
 
     // Add owner information to books
     const booksWithOwners: BookWithOwner[] = await Promise.all(
