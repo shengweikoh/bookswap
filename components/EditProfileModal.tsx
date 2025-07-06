@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { X, Calendar, MapPin, User, Heart } from "lucide-react"
 
 interface EditProfileModalProps {
@@ -12,8 +12,8 @@ interface EditProfileModalProps {
     name: string
     email: string
     interestedGenres: string[]
-    birthday: string
-    location: string
+    birthday?: string | null
+    location?: string | null
   }
   onSave: (data: any) => void
 }
@@ -35,11 +35,23 @@ const availableGenres = [
 
 export default function EditProfileModal({ isOpen, onClose, userData, onSave }: EditProfileModalProps) {
   const [formData, setFormData] = useState({
-    name: userData.name,
-    interestedGenres: userData.interestedGenres,
-    birthday: userData.birthday,
-    location: userData.location,
+    name: userData?.name || "",
+    interestedGenres: userData?.interestedGenres || [],
+    birthday: userData?.birthday || "",
+    location: userData?.location || "",
   })
+
+  // Update formData when userData changes
+  useEffect(() => {
+    if (userData) {
+      setFormData({
+        name: userData.name || "",
+        interestedGenres: userData.interestedGenres || [],
+        birthday: userData.birthday || "",
+        location: userData.location || "",
+      })
+    }
+  }, [userData])
 
   if (!isOpen) return null
 

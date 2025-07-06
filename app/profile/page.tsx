@@ -77,9 +77,10 @@ function ProfileContent() {
             name: userResult.data.name,
             email: '', // Don't show email for other users
             avatar: userResult.data.avatar,
-            location: userResult.data.location,
+            location: userResult.data.location || '',
             createdAt: new Date().toISOString(), // Use current date as fallback
-            interestedGenres: [] // Don't show genres for other users
+            interestedGenres: [], // Don't show genres for other users
+            birthday: '' // Don't show birthday for other users
           })
           setUserBooks(userResult.data.books || [])
           setSuccessfulSwaps(0) // Don't show swap count for other users
