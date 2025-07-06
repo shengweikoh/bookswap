@@ -3,16 +3,17 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { BookOpen, Edit, Trash2, Plus, Eye, Calendar, Tag } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { BookOpen, Edit, Plus, Eye, Calendar, Tag, MapPin } from "lucide-react"
 import AuthWrapper from "@/components/AuthWrapper"
 import { apiService } from "@/lib/api"
 import { ApiBook } from "@/lib/types"
 
 export default function MyListings() {
+  const router = useRouter()
   const [books, setBooks] = useState<ApiBook[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [deletingBookId, setDeletingBookId] = useState<string | null>(null)
   const [imageErrors, setImageErrors] = useState<{[key: string]: boolean}>({})
 
   useEffect(() => {
@@ -34,27 +35,6 @@ export default function MyListings() {
       setError("Failed to fetch your books")
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const handleDeleteBook = async (bookId: string) => {
-    if (!confirm("Are you sure you want to delete this book? This action cannot be undone.")) {
-      return
-    }
-
-    setDeletingBookId(bookId)
-
-    try {
-      const result = await apiService.deleteBook(bookId)
-      if (result.success) {
-        setBooks((prev) => prev.filter((book) => book.id !== bookId))
-      } else {
-        alert(result.error || "Failed to delete book")
-      }
-    } catch (error) {
-      alert("Failed to delete book")
-    } finally {
-      setDeletingBookId(null)
     }
   }
 
@@ -85,7 +65,7 @@ export default function MyListings() {
       <div className="min-h-screen bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">My Listings</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">My Postings</h1>
             <p className="text-gray-400">Manage your listed books</p>
           </div>
 
@@ -103,7 +83,7 @@ export default function MyListings() {
       <div className="min-h-screen bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">My Listings</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">My Postings</h1>
             <p className="text-gray-400">Manage your listed books</p>
           </div>
 
@@ -129,7 +109,7 @@ export default function MyListings() {
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-white mb-2">My Listings</h1>
+              <h1 className="text-3xl font-bold text-white mb-2">My Postings</h1>
               <p className="text-gray-400">
                 You have {books.length} {books.length === 1 ? "book" : "books"} listed
               </p>
@@ -191,6 +171,13 @@ export default function MyListings() {
                     <span className="text-sm text-gray-400">{book.genre}</span>
                   </div>
 
+                  {book.location && (
+                    <div className="flex items-center space-x-2 mb-3">
+                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm text-gray-400">{book.location}</span>
+                    </div>
+                  )}
+
                   <div className="flex items-center space-x-2 mb-4">
                     <Calendar className="h-4 w-4 text-gray-400" />
                     <span className="text-sm text-gray-400">Listed {formatDate(book.createdAt)}</span>
@@ -222,24 +209,21 @@ export default function MyListings() {
                     </Link>
                     <button
                       onClick={() => {
-                        // TODO: Implement edit functionality
-                        alert("Edit functionality coming soon!")
+                        if (!book.isAvailable) {
+                          alert("Cannot edit unavailable books")
+                          return
+                        }
+                        router.push(`/edit-book/${book.id}`)
                       }}
-                      className="flex-1 bg-emerald-600 text-white py-2 px-3 rounded-md hover:bg-emerald-700 transition-colors font-medium text-sm flex items-center justify-center space-x-1"
+                      disabled={!book.isAvailable}
+                      className={`flex-1 py-2 px-3 rounded-md transition-colors font-medium text-sm flex items-center justify-center space-x-1 ${
+                        book.isAvailable 
+                          ? "bg-emerald-600 text-white hover:bg-emerald-700" 
+                          : "bg-gray-600 text-gray-400 cursor-not-allowed"
+                      }`}
                     >
                       <Edit className="h-4 w-4" />
                       <span>Edit</span>
-                    </button>
-                    <button
-                      onClick={() => handleDeleteBook(book.id)}
-                      disabled={deletingBookId === book.id}
-                      className="bg-red-600 text-white py-2 px-3 rounded-md hover:bg-red-700 transition-colors font-medium text-sm flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {deletingBookId === book.id ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
                     </button>
                   </div>
                 </div>

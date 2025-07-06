@@ -35,13 +35,19 @@ export default function NotificationDropdown() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  // Fetch notifications when dropdown opens
+  // Fetch notifications when dropdown opens (only if we don't have data yet)
   useEffect(() => {
     if (isOpen && notifications.length === 0) {
       fetchNotifications()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen])
+
+  // Fetch notifications on component mount to show unread count
+  useEffect(() => {
+    fetchNotifications()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const fetchNotifications = async () => {
     setIsLoading(true)

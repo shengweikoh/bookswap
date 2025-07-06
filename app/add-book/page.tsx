@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { BookOpen } from "lucide-react"
 import AuthWrapper from "@/components/AuthWrapper"
 import { apiService } from "@/lib/api"
@@ -19,9 +20,11 @@ export default function AddBook() {
     condition: "",
     description: "",
     location: "",
+    image: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [imageError, setImageError] = useState(false)
 
   // Set default location from user profile when component mounts
   useEffect(() => {
@@ -46,7 +49,11 @@ export default function AddBook() {
     setSubmitError(null)
 
     try {
-      const result = await apiService.addBook(formData)
+      const bookData = {
+        ...formData,
+        isAvailable: true // New books are always available
+      }
+      const result = await apiService.addBook(bookData)
       
       if (result.success) {
         // Redirect to the browse page or show success message
@@ -184,6 +191,50 @@ export default function AddBook() {
               <p className="mt-1 text-sm text-gray-400">
                 {user?.location ? `Defaults to your profile location: ${user.location}` : "Add a location to help potential exchangers"}
               </p>
+            </div>
+
+            {/* Book Cover Image */}
+            <div>
+              <label htmlFor="image" className="block text-sm font-medium text-gray-300 mb-2">
+                Book Cover Image URL (Optional)
+              </label>
+              <input
+                id="image"
+                name="image"
+                type="url"
+                value={formData.image}
+                onChange={(e) => {
+                  handleChange(e)
+                  setImageError(false) // Reset error when user changes URL
+                }}
+                className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="https://example.com/book-cover.jpg"
+              />
+              <p className="mt-1 text-sm text-gray-400">
+                Optional: Provide a URL to an image of the book cover
+              </p>
+              
+              {/* Image Preview */}
+              {formData.image && (
+                <div className="mt-4">
+                  <p className="text-sm font-medium text-gray-300 mb-2">Preview:</p>
+                  <div className="w-32 h-48 bg-gray-700 rounded-lg overflow-hidden border border-gray-600">
+                    <Image
+                      src={imageError ? "/images/books/placeholder.svg" : formData.image}
+                      alt="Book cover preview"
+                      width={128}
+                      height={192}
+                      className="object-cover w-full h-full"
+                      onError={() => setImageError(true)}
+                    />
+                  </div>
+                  {imageError && (
+                    <p className="mt-2 text-sm text-red-400">
+                      Unable to load image. Please check the URL and try again.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div>

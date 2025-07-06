@@ -228,26 +228,31 @@ export default function ListingDetails() {
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <button
-                    onClick={handleChatClick}
-                    disabled={!!isOwner || !book.isAvailable}
-                    className={`flex-1 px-6 py-3 rounded-md font-medium flex items-center justify-center space-x-2 transition-colors ${
-                      isOwner 
-                        ? "bg-gray-600 text-gray-400 cursor-not-allowed" 
-                        : !book.isAvailable
+                  {isOwner ? (
+                    <button
+                      onClick={() => router.push(`/edit-book/${book.id}`)}
+                      className="flex-1 px-6 py-3 rounded-md font-medium flex items-center justify-center space-x-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                    >
+                      <span>Edit Book</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleChatClick}
+                      disabled={!book.isAvailable}
+                      className={`flex-1 px-6 py-3 rounded-md font-medium flex items-center justify-center space-x-2 transition-colors ${
+                        !book.isAvailable
                         ? "bg-gray-600 text-gray-400 cursor-not-allowed"
                         : "bg-emerald-600 text-white hover:bg-emerald-700"
-                    }`}
-                  >
-                    <MessageCircle className="h-5 w-5" />
-                    <span>
-                      {isOwner 
-                        ? "Your Listing" 
-                        : !book.isAvailable 
+                      }`}
+                    >
+                      <MessageCircle className="h-5 w-5" />
+                      <span>
+                        {!book.isAvailable 
                         ? "Book Unavailable" 
                         : `Chat with ${book.owner}`}
-                    </span>
-                  </button>
+                      </span>
+                    </button>
+                  )}
 
                   <div className="flex gap-2">
                     <button

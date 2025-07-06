@@ -140,6 +140,8 @@ export interface BookRequest {
   condition: string
   description: string
   image?: string
+  location: string
+  isAvailable: boolean
 }
 
 export interface ExchangeRequestPayload {

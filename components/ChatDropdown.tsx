@@ -21,7 +21,8 @@ export default function ChatDropdown({ className = "" }: ChatDropdownProps) {
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen)
-    if (!isOpen) {
+    // Only fetch if we don't have data yet
+    if (!isOpen && chats.length === 0) {
       fetchChats()
     }
   }
@@ -70,6 +71,12 @@ export default function ChatDropdown({ className = "" }: ChatDropdownProps) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
     }
+  }, [])
+
+  // Fetch chats on component mount to show unread count
+  useEffect(() => {
+    fetchChats()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const unreadCount = chats.filter(chat => !chat.isRead).length

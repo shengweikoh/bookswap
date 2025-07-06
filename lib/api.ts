@@ -210,7 +210,25 @@ class ApiService {
         headers: this.getAuthHeaders(),
       })
 
-      return await this.handleResponse(response)
+      // Handle the response properly for DELETE requests
+      if (!response.ok) {
+        let errorMessage = "Failed to delete book"
+        try {
+          const data = await response.json()
+          errorMessage = data.error || data.message || errorMessage
+        } catch (e) {
+          // If JSON parsing fails, use the default error message
+        }
+        return {
+          success: false,
+          error: errorMessage,
+        }
+      }
+
+      return {
+        success: true,
+        data: undefined,
+      }
     } catch (error) {
       return {
         success: false,

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { MapPin } from "lucide-react"
 import type { BookWithOwner } from "@/lib/types"
 
 interface BookCardProps {
@@ -57,6 +58,13 @@ export default function BookCard({ book }: BookCardProps) {
               {book.owner}
             </Link>
           </p>
+
+          {book.location && (
+            <div className="flex items-center space-x-1 mb-3">
+              <MapPin className="h-3 w-3 text-gray-400" />
+              <span className="text-xs text-gray-400">{book.location}</span>
+            </div>
+          )}
 
           <Link
             href={`/listing/${book.id}`}

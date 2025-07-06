@@ -68,7 +68,12 @@ export default function RecentSwaps() {
                     className="rounded-full"
                   />
                   <div>
-                    <p className="font-medium text-white">{swap.requester?.name || "User"}</p>
+                    <Link 
+                      href={`/profile?userId=${swap.requester?.id || ''}`}
+                      className="font-medium text-white hover:text-emerald-400 transition-colors"
+                    >
+                      {swap.requester?.name || "User"}
+                    </Link>
                     <p className="text-sm text-gray-300">Exchanged with</p>
                   </div>
                 </div>

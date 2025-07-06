@@ -65,9 +65,6 @@ export default function AuthenticatedHeader() {
           </div>
 
           <nav className="hidden md:flex space-x-8">
-            <Link href="/home" className={`flex items-center space-x-1 px-3 py-2 ${isActive("/home")}`}>
-              <span>Home</span>
-            </Link>
             <Link href="/browse" className={`flex items-center space-x-1 px-3 py-2 ${isActive("/browse")}`}>
               <Search className="h-4 w-4" />
               <span>Browse Books</span>
