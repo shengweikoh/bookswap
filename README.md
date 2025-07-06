@@ -2,23 +2,6 @@
 
 A modern web application for book lovers to exchange books with each other, built with Next.js, PostgreSQL, and Docker.
 
-## 📦 Transfer-Ready Setup
-
-**This project is designed to be easily transferable to other developers.**
-
-### What You Get:
-- ✅ **Complete Docker setup** - No local dependencies needed
-- ✅ **Auto database setup** - PostgreSQL with schema and seed data
-- ✅ **One-command startup** - `./start.sh` handles everything
-- ✅ **Health checks** - `./health-check.sh` verifies everything works
-- ✅ **Comprehensive docs** - README.md with complete setup instructions
-
-### Quick Commands:
-```bash
-./start.sh           # Start everything
-./health-check.sh    # Verify it's working
-```
-
 ## 🚀 Quick Start
 
 **Prerequisites:**
@@ -27,6 +10,14 @@ A modern web application for book lovers to exchange books with each other, buil
 
 **One-Command Setup:**
 
+### Windows Users
+```cmd
+git clone <repository-url>
+cd bookswap
+start.bat
+```
+
+### macOS/Linux Users
 ```bash
 git clone <repository-url>
 cd bookswap
@@ -34,9 +25,11 @@ chmod +x start.sh
 ./start.sh
 ```
 
-That's it! The script will automatically:
+### What the Setup Script Does
+
+Both scripts will automatically:
 - ✅ Check Docker is running
-- ✅ Check for port conflicts
+- ✅ Check for port conflicts (3000, 5432)
 - ✅ Build and start Docker containers
 - ✅ Set up the PostgreSQL database
 - ✅ Apply the database schema
@@ -45,15 +38,47 @@ That's it! The script will automatically:
 
 The application will be available at **http://localhost:3000**
 
-## 🛠️ What's Included
+### Cross-Platform Support
 
-### Sample Data
-### Test Accounts
-You can use these accounts to test the application:
-- **User 1**: john@example.com / password123
-- **User 2**: jane@example.com / password123
-- **User 3**: sarah@example.com / password123
-- **User 4**: mike@example.com / password123
+The project includes setup scripts for both platforms:
+- **Windows**: `start.bat` - Double-click to run or execute from Command Prompt
+- **Unix/Linux/macOS**: `start.sh` - Run from terminal
+
+Both scripts provide the same functionality:
+- Port conflict detection
+- Docker service management
+- Database setup and seeding
+- Error handling and user feedback
+- Sample login credentials display
+
+### After Setup
+
+Once either script completes, you can:
+- 🌐 **Open your browser** and go to: http://localhost:3000
+- 👤 **Login with sample accounts**:
+  - Email: `john@example.com`, Password: `password123`
+  - Email: `jane@example.com`, Password: `password123`
+  - Email: `bob@example.com`, Password: `password123`
+  - Email: `alice@example.com`, Password: `password123`
+
+### Troubleshooting
+
+**Port Conflicts:**
+- If port 3000 is in use: Stop any local development servers
+- If port 5432 is in use: Stop any local PostgreSQL instances
+
+**Docker Issues:**
+- Make sure Docker Desktop is running
+- Try restarting Docker Desktop if you encounter issues
+
+**Windows-specific:**
+- If you get "execution policy" errors, run Command Prompt as Administrator
+- Make sure Docker Desktop is set to use Windows containers if needed
+
+**Unix/Linux/macOS-specific:**
+```bash
+chmod +x start.sh
+```
 
 ## 🌟 Features
 
