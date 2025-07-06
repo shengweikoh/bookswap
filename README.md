@@ -578,6 +578,3 @@ If you encounter issues:
 3. Check container logs with `docker compose logs`
 4. Open an issue in the repository
 
----
-
-**Happy coding! 🎉**
