@@ -570,16 +570,6 @@ The BookSwap application is currently a fully functional MVP with core features 
 
 This project is licensed under the MIT License.
 
-## 🤝 Contributing
-
-1. Make sure the app runs with `./start.sh`
-2. Make your changes
-3. Test with `./health-check.sh`
-4. Create your feature branch (`git checkout -b feature/amazing-feature`)
-5. Commit your changes (`git commit -m 'Add some amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
 ## 📞 Support
 
 If you encounter issues:
