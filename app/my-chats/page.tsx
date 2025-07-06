@@ -711,9 +711,12 @@ function MyChatContent() {
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            <p className="text-sm font-medium text-white truncate">
+                            <Link 
+                              href={`/profile?userId=${chat.otherUserId}`}
+                              className="text-sm font-medium text-white hover:text-emerald-400 transition-colors truncate"
+                            >
                               {chat.otherUserName}
-                            </p>
+                            </Link>
                             <div className="flex items-center space-x-1 text-xs text-gray-400">
                               <Clock className="h-3 w-3" />
                               <span>{formatTimeAgo(chat.lastMessageTime)}</span>
@@ -763,7 +766,12 @@ function MyChatContent() {
                           className="rounded-full"
                         />
                         <div>
-                          <h3 className="font-medium text-white">{selectedChat.otherUserName || 'Unknown User'}</h3>
+                          <Link 
+                            href={`/profile?userId=${selectedChat.otherUserId}`}
+                            className="font-medium text-white hover:text-emerald-400 transition-colors"
+                          >
+                            {selectedChat.otherUserName || 'Unknown User'}
+                          </Link>
                           <p className="text-sm text-gray-400">About: {selectedChat.bookTitle || 'Unknown Book'}</p>
                         </div>
                       </div>

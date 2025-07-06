@@ -299,6 +299,21 @@ class ApiService {
     }
   }
 
+  async getUserById(userId: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        headers: this.getAuthHeaders(),
+      })
+
+      return await this.handleResponse(response)
+    } catch (error) {
+      return {
+        success: false,
+        error: "Failed to fetch user profile",
+      }
+    }
+  }
+
   async updateUserProfile(profileData: any): Promise<ApiResponse<any>> {
     try {
       const response = await fetch(`${API_BASE_URL}/users/profile`, {

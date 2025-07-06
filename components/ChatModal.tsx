@@ -4,10 +4,12 @@ import type React from "react"
 import { useState } from "react"
 import { X, Send, Paperclip, Smile } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 
 interface ChatModalProps {
   isOpen: boolean
   onClose: () => void
+  ownerId: string
   ownerName: string
   ownerAvatar: string | null
   bookTitle: string
@@ -20,7 +22,7 @@ interface Message {
   timestamp: Date
 }
 
-export default function ChatModal({ isOpen, onClose, ownerName, ownerAvatar, bookTitle }: ChatModalProps) {
+export default function ChatModal({ isOpen, onClose, ownerId, ownerName, ownerAvatar, bookTitle }: ChatModalProps) {
   const [message, setMessage] = useState("")
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -84,7 +86,12 @@ export default function ChatModal({ isOpen, onClose, ownerName, ownerAvatar, boo
                 className="rounded-full"
               />
               <div>
-                <h3 className="font-medium text-white">{ownerName}</h3>
+                <Link 
+                  href={`/profile?userId=${ownerId}`}
+                  className="font-medium text-white hover:text-emerald-400 transition-colors"
+                >
+                  {ownerName}
+                </Link>
                 <p className="text-sm text-gray-400">About &quot;{bookTitle}&quot;</p>
               </div>
             </div>

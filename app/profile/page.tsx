@@ -1,13 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { User, Mail, BookOpen, Calendar, MapPin, Edit, Heart } from "lucide-react"
 import EditProfileModal from "@/components/EditProfileModal"
 import AuthWrapper from "@/components/AuthWrapper"
 import { apiService } from "@/lib/api"
+import { useAuth } from "@/contexts/AuthContext"
 
-export default function Profile() {
+function ProfileContent() {
+  const searchParams = useSearchParams()
+  const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth()
   const [userData, setUserData] = useState<any>(null)
   const [userBooks, setUserBooks] = useState<any[]>([])
   const [successfulSwaps, setSuccessfulSwaps] = useState<number>(0)
@@ -15,47 +19,89 @@ export default function Profile() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchUserData()
-  }, [])
+  // Get user ID from search params, if not provided, show current user's profile
+  const userId = searchParams.get('userId')
+  const isOwnProfile = !userId || userId === currentUser?.id
 
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
+    // Wait for auth to be determined
+    if (authLoading) return
+    
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      setError("Please log in to view profiles")
+      setLoading(false)
+      return
+    }
+
     try {
       setLoading(true)
-      const [profileResult, currentUser, exchangeHistoryResult] = await Promise.all([
-        apiService.getUserProfile(),
-        apiService.getCurrentUser(),
-        apiService.getExchangeHistory()
-      ])
+      
+      if (isOwnProfile) {
+        // Fetch current user's profile
+        const [profileResult, currentUserData, exchangeHistoryResult] = await Promise.all([
+          apiService.getUserProfile(),
+          apiService.getCurrentUser(),
+          apiService.getExchangeHistory()
+        ])
 
-      if (profileResult.success && profileResult.data) {
-        setUserData(profileResult.data)
-        
-        // Fetch user's books
-        if (currentUser?.id) {
-          const booksResult = await apiService.getUserBooks(currentUser.id)
-          if (booksResult.success && booksResult.data) {
-            setUserBooks(booksResult.data)
-          }
+        if (profileResult.success && profileResult.data) {
+          setUserData(profileResult.data)
           
-          // Calculate successful swaps
-          if (exchangeHistoryResult.success && exchangeHistoryResult.data) {
-            const swapCount = exchangeHistoryResult.data.filter((exchange: any) => 
-              exchange.status === "accepted" && 
-              (exchange.requesterId === currentUser.id || exchange.ownerId === currentUser.id)
-            ).length
-            setSuccessfulSwaps(swapCount)
+          // Fetch user's books
+          if (currentUserData?.id) {
+            const booksResult = await apiService.getUserBooks(currentUserData.id)
+            if (booksResult.success && booksResult.data) {
+              setUserBooks(booksResult.data)
+            }
+            
+            // Calculate successful swaps
+            if (exchangeHistoryResult.success && exchangeHistoryResult.data) {
+              const swapCount = exchangeHistoryResult.data.filter((exchange: any) => 
+                exchange.status === "accepted" && 
+                (exchange.requesterId === currentUserData.id || exchange.ownerId === currentUserData.id)
+              ).length
+              setSuccessfulSwaps(swapCount)
+            }
           }
+        } else {
+          setError(profileResult.error || "Failed to load profile")
         }
       } else {
-        setError(profileResult.error || "Failed to load profile")
+        // Fetch other user's profile using apiService
+        const userResult = await apiService.getUserById(userId)
+        
+        if (userResult.success && userResult.data) {
+          setUserData({
+            id: userResult.data.id,
+            name: userResult.data.name,
+            email: '', // Don't show email for other users
+            avatar: userResult.data.avatar,
+            location: userResult.data.location,
+            createdAt: new Date().toISOString(), // Use current date as fallback
+            interestedGenres: [] // Don't show genres for other users
+          })
+          setUserBooks(userResult.data.books || [])
+          setSuccessfulSwaps(0) // Don't show swap count for other users
+        } else {
+          // Check if it's an authentication error
+          if (userResult.error?.includes('401') || userResult.error?.includes('Unauthorized')) {
+            setError("Please log in to view user profiles")
+          } else {
+            setError(userResult.error || "Failed to load user profile")
+          }
+        }
       }
     } catch (err) {
-      setError("An error occurred while loading profile")
+      setError("Failed to load profile")
     } finally {
       setLoading(false)
     }
-  }
+  }, [userId, isOwnProfile, authLoading, isAuthenticated])
+
+  useEffect(() => {
+    fetchUserData()
+  }, [fetchUserData])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -148,23 +194,27 @@ export default function Profile() {
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                 <h1 className="text-3xl font-bold text-white mb-2 md:mb-0">{userData.name}</h1>
-                <button
-                  onClick={() => setIsEditModalOpen(true)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors"
-                >
-                  <Edit className="h-4 w-4" />
-                  <span>Edit Profile</span>
-                </button>
+                {isOwnProfile && (
+                  <button
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors"
+                  >
+                    <Edit className="h-4 w-4" />
+                    <span>Edit Profile</span>
+                  </button>
+                )}
               </div>
 
               <div className="flex flex-col md:flex-row items-center md:items-start space-y-2 md:space-y-0 md:space-x-6 text-gray-400 mb-4">
-                <div className="flex items-center space-x-2">
-                  <Mail className="h-5 w-5" />
-                  <span>{userData.email}</span>
-                </div>
+                {isOwnProfile && userData.email && (
+                  <div className="flex items-center space-x-2">
+                    <Mail className="h-5 w-5" />
+                    <span>{userData.email}</span>
+                  </div>
+                )}
                 <div className="flex items-center space-x-2">
                   <Calendar className="h-5 w-5" />
-                  <span>Member since {userData.memberSince}</span>
+                  <span>Member since {userData.memberSince || new Date(userData.createdAt).getFullYear()}</span>
                 </div>
                 {userData.location && (
                   <div className="flex items-center space-x-2">
@@ -282,13 +332,27 @@ export default function Profile() {
         </div>
       </div>
 
-      <EditProfileModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        userData={userData}
-        onSave={handleSaveProfile}
-      />
+      {isOwnProfile && (
+        <EditProfileModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          userData={userData}
+          onSave={handleSaveProfile}
+        />
+      )}
     </div>
     </AuthWrapper>
+  )
+}
+
+export default function Profile() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white">Loading profile...</div>
+      </div>
+    }>
+      <ProfileContent />
+    </Suspense>
   )
 }

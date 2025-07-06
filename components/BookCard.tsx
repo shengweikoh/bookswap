@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import type { BookWithOwner } from "@/lib/types"
 import Link from "next/link"
+import type { BookWithOwner } from "@/lib/types"
 
 interface BookCardProps {
   book: BookWithOwner
@@ -50,7 +50,12 @@ export default function BookCard({ book }: BookCardProps) {
           </div>
 
           <p className="text-xs text-gray-300 mb-3">
-            Owner: <span className="font-medium">{book.owner}</span>
+            Owner: <Link 
+              href={`/profile?userId=${book.ownerId}`}
+              className="font-medium text-emerald-400 hover:text-emerald-300 transition-colors"
+            >
+              {book.owner}
+            </Link>
           </p>
 
           <Link

@@ -207,7 +207,12 @@ export default function ListingDetails() {
                     className="rounded-full"
                   />
                   <div>
-                    <p className="font-medium text-white">{book.owner}</p>
+                    <Link 
+                      href={`/profile?userId=${book.ownerId}`}
+                      className="font-medium text-white hover:text-emerald-400 transition-colors"
+                    >
+                      {book.owner}
+                    </Link>
                     <div className="flex items-center space-x-4 text-sm text-gray-400 mt-1">
                       <div className="flex items-center space-x-1">
                         <MapPin className="h-4 w-4" />

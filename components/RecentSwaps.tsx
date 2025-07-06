@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { ArrowRightLeft, Clock } from "lucide-react"
 import { apiService } from "@/lib/api"
 import { formatTimeAgo } from "@/lib/types"
@@ -85,7 +86,12 @@ export default function RecentSwaps() {
                     className="rounded-full"
                   />
                   <div>
-                    <p className="font-medium text-white">{swap.owner?.name || "Owner"}</p>
+                    <Link 
+                      href={`/profile?userId=${swap.owner?.id || ''}`}
+                      className="font-medium text-white hover:text-emerald-400 transition-colors"
+                    >
+                      {swap.owner?.name || "Owner"}
+                    </Link>
                     <p className="text-sm text-gray-300">for &quot;{swap.book?.title || "Book"}&quot;</p>
                   </div>
                 </div>

@@ -92,7 +92,14 @@ export default function LatestPostings() {
                   >
                     {book.condition}
                   </span>
-                  <span className="text-sm text-gray-300">by {book.owner}</span>
+                  <span className="text-sm text-gray-300">
+                    by <Link 
+                      href={`/profile?userId=${book.ownerId}`}
+                      className="text-emerald-400 hover:text-emerald-300 transition-colors"
+                    >
+                      {book.owner}
+                    </Link>
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-between text-sm text-gray-400">
