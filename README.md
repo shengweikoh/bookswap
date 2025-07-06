@@ -468,6 +468,104 @@ docker compose down -v
 ./start.sh
 ```
 
+## 🗓️ Project Plan & Future Milestones
+
+### Current Status: MVP Complete ✅
+
+The BookSwap application is currently a fully functional MVP with core features implemented:
+- User authentication and profiles
+- Book listing and browsing
+- Exchange request system
+- Real-time chat system
+- Notification system
+- Responsive design
+
+### 📋 Planned Features & Roadmap
+
+#### Phase 1: Enhanced User Experience (Q1 2025)
+**Priority: High**
+
+- **🔍 Advanced Search & Filtering**
+  - Filter by distance/location radius
+  - Advanced genre and author filtering
+  - Book condition and availability filters
+  - Search by ISBN and barcode scanning
+
+- **📱 Mobile App Development**
+  - React Native mobile application
+  - Push notifications for mobile
+  - Offline reading list management
+  - Camera integration for book photos
+
+- **🏆 Gamification Features**
+  - User reputation system
+  - Exchange badges and achievements
+  - Reading challenges and goals
+  - Community leaderboards
+
+#### Phase 2: Community & Social Features (Q2 2025)
+**Priority: Medium**
+
+- **👥 Social Features**
+  - Follow other users
+  - Public reading lists and collections
+  - Book reviews and ratings system
+  - Reading activity feed
+
+- **📚 Book Clubs & Groups**
+  - Create and join book clubs
+  - Group discussions and forums
+  - Book club reading schedules
+  - Group exchange events
+
+- **🎯 Smart Recommendations**
+  - AI-powered book recommendations
+  - Machine learning for user preferences
+  - Collaborative filtering algorithm
+  - Integration with external book APIs
+
+#### Phase 3: Advanced Features (Q3 2025)
+**Priority: Medium**
+
+- **💰 Premium Features**
+  - Priority listing placement
+  - Enhanced profile customization
+  - Advanced analytics dashboard
+  - Bulk book management tools
+
+- **🌍 Location-Based Features**
+  - Interactive map of nearby books
+  - Local meetup coordination
+  - GPS-based book discovery
+  - Safe meeting location suggestions
+
+- **📊 Analytics & Insights**
+  - Personal reading statistics
+  - Exchange history analytics
+  - Community insights dashboard
+  - Book popularity trends
+
+#### Phase 4: Ecosystem Expansion (Q4 2025)
+**Priority: Low**
+
+- **🏪 Marketplace Integration**
+  - Integration with used book stores
+  - Library system partnerships
+  - ISBN price comparison
+  - Donation to charity options
+
+- **🔗 Third-Party Integrations**
+  - Goodreads integration
+  - Amazon/Google Books API
+  - Social media sharing
+  - Calendar integration for exchanges
+
+- **🌐 Multi-Language Support**
+  - Internationalization (i18n)
+  - Multiple language interfaces
+  - Region-specific features
+  - Currency support for premium features
+
 ## 📝 License
 
 This project is licensed under the MIT License.
