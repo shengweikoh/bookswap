@@ -48,15 +48,12 @@ The application will be available at **http://localhost:3000**
 ## 🛠️ What's Included
 
 ### Sample Data
-The application comes pre-loaded with:
-- 2 sample users (John and Jane)
-- 3 sample books with different genres and conditions
-- 1 sample notification
-
 ### Test Accounts
 You can use these accounts to test the application:
 - **User 1**: john@example.com / password123
 - **User 2**: jane@example.com / password123
+- **User 3**: sarah@example.com / password123
+- **User 4**: mike@example.com / password123
 
 ## 🌟 Features
 
@@ -168,23 +165,87 @@ docker compose exec app bash
 
 ```
 bookswap/
-├── start.sh              # One-command setup script
-├── health-check.sh       # Health check script
-├── docker-compose.yml    # Docker services configuration
-├── Dockerfile           # App container configuration
-├── app/                 # Next.js app directory
-│   ├── api/             # API routes
-│   ├── components/      # React components
-│   └── pages/           # App pages
-├── components/          # Reusable UI components
-├── lib/                 # Utility functions and services
-│   ├── seed.ts          # Database seeding functions
-│   └── ...              # Other utility files
-├── prisma/              # Database schema and migrations
-│   └── schema.prisma    # Database schema
-├── scripts/             # Utility scripts
-│   └── seed.ts          # Database seeding script
-└── README.md           # This file
+├── start.sh                    # One-command setup script
+├── health-check.sh             # Health check script
+├── docker-compose.yml          # Docker services configuration
+├── Dockerfile                  # App container configuration
+├── package.json                # Dependencies and scripts
+├── tsconfig.json               # TypeScript configuration
+├── tailwind.config.ts          # Tailwind CSS configuration
+├── next.config.mjs             # Next.js configuration
+├── components.json             # shadcn/ui components configuration
+├── app/                        # Next.js app directory (App Router)
+│   ├── layout.tsx              # Root layout
+│   ├── page.tsx                # Landing page
+│   ├── globals.css             # Global styles
+│   ├── ClientLayout.tsx        # Client-side layout wrapper
+│   ├── api/                    # API routes
+│   │   ├── auth/               # Authentication endpoints
+│   │   │   ├── login/
+│   │   │   ├── logout/
+│   │   │   ├── register/
+│   │   │   └── me/
+│   │   ├── books/              # Book management endpoints
+│   │   │   ├── route.ts        # GET (list), POST (create)
+│   │   │   ├── [id]/route.ts   # GET, PUT, DELETE specific book
+│   │   │   └── user/[userId]/  # Get user's books
+│   │   ├── chats/              # Chat system endpoints
+│   │   │   ├── route.ts        # GET (list), POST (create)
+│   │   │   └── [threadId]/     # Chat messages
+│   │   ├── exchanges/          # Exchange management
+│   │   │   ├── request/
+│   │   │   ├── requests/
+│   │   │   └── history/
+│   │   ├── notifications/      # Notification system
+│   │   │   ├── route.ts
+│   │   │   ├── [id]/read/
+│   │   │   └── read-all/
+│   │   └── users/              # User management
+│   │       ├── [id]/
+│   │       └── profile/
+│   ├── add-book/               # Add new book page
+│   ├── browse/                 # Browse books page
+│   ├── edit-book/[id]/         # Edit book page
+│   ├── home/                   # User dashboard
+│   ├── listing/[id]/           # Book details page
+│   ├── login/                  # Login page
+│   ├── signup/                 # Registration page
+│   ├── profile/                # User profile page
+│   ├── my-chats/               # Chat interface
+│   ├── my-listings/            # User's book listings
+│   ├── notifications/          # Notifications page
+│   └── users/[id]/             # User profile view
+├── components/                 # Reusable UI components
+│   ├── AuthWrapper.tsx         # Authentication wrapper
+│   ├── AuthenticatedHeader.tsx # Main navigation
+│   ├── Header.tsx              # Public header
+│   ├── BookCard.tsx            # Book display component
+│   ├── ChatModal.tsx           # Chat modal component
+│   ├── ChatDropdown.tsx        # Chat notifications dropdown
+│   ├── NotificationDropdown.tsx # Notification dropdown
+│   ├── EditProfileModal.tsx    # Profile editing modal
+│   ├── PasswordInput.tsx       # Password input with toggle
+│   ├── LatestPostings.tsx      # Recent book listings
+│   ├── RecentSwaps.tsx         # Recent exchanges
+│   └── YouMayLike.tsx          # Book recommendations
+├── contexts/                   # React contexts
+│   └── AuthContext.tsx         # Authentication context
+├── lib/                        # Utility functions and services
+│   ├── api.ts                  # API service functions
+│   ├── databaseService.ts      # Database operations
+│   ├── prisma.ts               # Prisma client setup
+│   ├── jwt.ts                  # JWT utilities
+│   ├── middleware.ts           # API middleware
+│   ├── types.ts                # TypeScript type definitions
+│   ├── utils.ts                # General utilities
+│   └── seed.ts                 # Database seeding functions
+├── prisma/                     # Database schema and migrations
+│   └── schema.prisma           # Database schema
+├── scripts/                    # Utility scripts
+│   └── seed.ts                 # Database seeding script
+├── public/                     # Static assets
+│   └── images/                 # Image assets
+└── README.md                   # This file
 ```
 
 ## 🔧 Development
@@ -239,19 +300,75 @@ npm run seed:clear  # Remove all data from database
 ```
 
 **Sample Data Includes:**
-- **4 sample users** with different reading preferences and profiles
-- **8 books** across various genres (Fiction, Non-Fiction, Science, History, etc.)
-- **Books in different conditions** (Like New, Good, Fair)
-- **Exchange requests** in different states (pending, accepted, rejected)
-- **Chat messages** between users for active exchanges
-- **Notifications** for various exchange activities
-- **User profiles** with bio, location, and reading interests
 
-**Sample Login Credentials:**
-- `john@example.com` / `password123` - Fiction lover with 3 books
-- `jane@example.com` / `password123` - Science enthusiast with 2 books  
-- `sarah@example.com` / `password123` - History buff with 2 books
-- `mike@example.com` / `password123` - Non-fiction reader with 1 book
+### Sample Users (All with password: `password123`)
+- **John Smith** (`john@example.com`) - San Francisco, CA
+  - Interests: Science Fiction, Fantasy, Mystery
+  - Books: The Great Gatsby, Dune, Harry Potter (exchanged)
+  
+- **Jane Doe** (`jane@example.com`) - New York, NY
+  - Interests: Classic Literature, Romance
+  - Books: To Kill a Mockingbird, 1984, Lord of the Rings (exchanged)
+  
+- **Sarah Wilson** (`sarah@example.com`) - Los Angeles, CA
+  - Interests: Contemporary Fiction, Self-Help
+  - Books: The Seven Husbands of Evelyn Hugo, The Midnight Library, Pride and Prejudice (exchanged)
+  
+- **Mike Johnson** (`mike@example.com`) - Chicago, IL
+  - Interests: Biography, History
+  - Books: Atomic Habits, Educated, The Catcher in the Rye (exchanged)
+
+### Sample Books (12 total)
+**Available Books:**
+- The Great Gatsby (John) - Good condition, San Francisco
+- To Kill a Mockingbird (Jane) - New condition, New York
+- Dune (John) - Good condition, San Francisco
+- The Seven Husbands of Evelyn Hugo (Sarah) - New condition, Los Angeles
+- Atomic Habits (Mike) - Good condition, Chicago
+- The Midnight Library (Sarah) - Good condition, Los Angeles
+- Educated (Mike) - Worn condition, Chicago
+
+**Previously Exchanged Books:**
+- 1984 (Jane) - Exchanged to Sarah
+- Pride and Prejudice (Sarah) - Exchanged to John
+- The Catcher in the Rye (Mike) - Exchanged to Jane
+- Harry Potter (John) - Exchanged to Sarah
+- Lord of the Rings (Jane) - Exchanged to Mike
+
+### Exchange Scenarios
+**Active Exchange Requests:**
+- Jane → John: Requesting "The Great Gatsby" (Pending)
+- Sarah → Jane: Requesting "1984" (Accepted)
+- John: Offering "Dune" for exchange (Pending)
+- Sarah: Offering "The Seven Husbands of Evelyn Hugo" (Pending)
+
+**Completed Exchange History:**
+- John ↔ Sarah: Pride and Prejudice (Nov 28, 2024)
+- Jane ↔ Mike: The Catcher in the Rye (Nov 20, 2024)
+- Sarah ↔ John: Harry Potter (Nov 15, 2024)
+- Mike ↔ Jane: Lord of the Rings (Nov 8, 2024)
+
+### Chat Conversations (8 active threads)
+- **With Exchange Requests:**
+  - John & Jane: Discussing "The Great Gatsby" trade
+  - John & Sarah: Discussing "Dune" for "Seven Husbands" exchange
+  - Jane & John: About "To Kill a Mockingbird"
+  - Sarah & John: About "The Seven Husbands of Evelyn Hugo"
+  - Mike & John: About "Atomic Habits"
+
+- **General Conversations (No Exchange Requests):**
+  - Sarah & Jane: Discussing "The Midnight Library"
+  - Mike & Sarah: About "Educated"
+  - Mike & Jane: Different conversation about "Atomic Habits"
+
+### Notifications
+- Welcome messages for new users
+- Exchange request notifications
+- Exchange acceptance notifications
+- Exchange offer notifications
+
+### Chat Messages (32 total)
+Each conversation includes 3-4 realistic messages between users discussing books, sharing recommendations, and coordinating exchanges. Messages include timestamps and read status.
 
 ### Useful Commands
 
