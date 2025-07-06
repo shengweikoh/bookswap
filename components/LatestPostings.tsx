@@ -11,6 +11,7 @@ import type { BookWithOwner } from "@/lib/types"
 export default function LatestPostings() {
   const [books, setBooks] = useState<BookWithOwner[]>([])
   const [loading, setLoading] = useState(true)
+  const [imageErrors, setImageErrors] = useState<{[key: string]: boolean}>({})
 
   useEffect(() => {
     fetchLatestBooks()
@@ -73,11 +74,12 @@ export default function LatestPostings() {
           >
             <div className="flex items-center space-x-4">
               <Image
-                src={book.image || "/images/books/placeholder.svg"}
+                src={imageErrors[book.id] || !book.image ? "/images/books/placeholder.svg" : book.image}
                 alt={book.title}
                 width={60}
                 height={80}
                 className="rounded-md object-cover"
+                onError={() => setImageErrors(prev => ({...prev, [book.id]: true}))}
               />
 
               <div className="flex-1">
@@ -96,7 +98,7 @@ export default function LatestPostings() {
                 <div className="flex items-center justify-between text-sm text-gray-400">
                   <div className="flex items-center space-x-1">
                     <MapPin className="h-4 w-4" />
-                    <span>Location not specified</span>
+                    <span>{book.location || "Location not specified"}</span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <Clock className="h-4 w-4" />

@@ -13,6 +13,7 @@ export default function MyListings() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deletingBookId, setDeletingBookId] = useState<string | null>(null)
+  const [imageErrors, setImageErrors] = useState<{[key: string]: boolean}>({})
 
   useEffect(() => {
     fetchMyBooks()
@@ -84,7 +85,7 @@ export default function MyListings() {
       <div className="min-h-screen bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">My Postings</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">My Listings</h1>
             <p className="text-gray-400">Manage your listed books</p>
           </div>
 
@@ -102,7 +103,7 @@ export default function MyListings() {
       <div className="min-h-screen bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">My Postings</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">My Listings</h1>
             <p className="text-gray-400">Manage your listed books</p>
           </div>
 
@@ -128,7 +129,7 @@ export default function MyListings() {
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-white mb-2">My Postings</h1>
+                <h1 className="text-3xl font-bold text-white mb-2">My Listings</h1>
               <p className="text-gray-400">
                 You have {books.length} {books.length === 1 ? "book" : "books"} listed
               </p>
@@ -148,7 +149,7 @@ export default function MyListings() {
             <BookOpen className="h-16 w-16 text-gray-600 mx-auto mb-6" />
             <h3 className="text-xl font-semibold text-white mb-2">No books listed yet</h3>
             <p className="text-gray-400 mb-6 max-w-md mx-auto">
-              Start building your library by adding books you'd like to exchange with other readers.
+              Start building your library by adding books you&apos;d like to exchange with other readers.
             </p>
             <Link
               href="/add-book"
@@ -165,10 +166,11 @@ export default function MyListings() {
                 {/* Book Image */}
                 <div className="aspect-[3/4] bg-gray-700 relative">
                   <Image
-                    src={book.image || "/images/books/placeholder.svg"}
+                    src={imageErrors[book.id] || !book.image ? "/images/books/placeholder.svg" : book.image}
                     alt={book.title}
                     fill
                     className="object-cover"
+                    onError={() => setImageErrors(prev => ({...prev, [book.id]: true}))}
                   />
                   <div className="absolute top-3 right-3">
                     <span

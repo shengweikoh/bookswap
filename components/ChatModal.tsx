@@ -85,7 +85,7 @@ export default function ChatModal({ isOpen, onClose, ownerName, ownerAvatar, boo
               />
               <div>
                 <h3 className="font-medium text-white">{ownerName}</h3>
-                <p className="text-sm text-gray-400">About "{bookTitle}"</p>
+                <p className="text-sm text-gray-400">About &quot;{bookTitle}&quot;</p>
               </div>
             </div>
             <button onClick={onClose} className="text-gray-400 hover:text-white">

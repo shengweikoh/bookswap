@@ -21,6 +21,7 @@ export interface Book {
   description: string
   ownerId: string
   image: string | null
+  location: string | null
   createdAt: Date
   updatedAt: Date
   isAvailable: boolean
@@ -28,6 +29,8 @@ export interface Book {
 
 export interface BookWithOwner extends Book {
   owner: string
+  ownerAvatar?: string | null
+  ownerLocation?: string | null
 }
 
 export interface ExchangeRequest {

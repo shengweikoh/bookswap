@@ -40,6 +40,7 @@ export default function NotificationDropdown() {
     if (isOpen && notifications.length === 0) {
       fetchNotifications()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen])
 
   const fetchNotifications = async () => {

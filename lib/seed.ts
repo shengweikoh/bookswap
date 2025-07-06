@@ -74,7 +74,8 @@ export async function seedDatabase() {
         condition: "Good" as const,
         description: "A masterpiece of American literature that captures the essence of the Jazz Age. This classic novel follows the mysterious Jay Gatsby and his obsession with the beautiful Daisy Buchanan.",
         ownerId: user1.id,
-        image: null,
+        image: "https://covers.openlibrary.org/b/isbn/9780486284729-L.jpg",
+        location: "San Francisco, CA",
         isAvailable: true,
       },
       {
@@ -85,7 +86,8 @@ export async function seedDatabase() {
         condition: "New" as const,
         description: "A gripping tale of racial injustice and childhood innocence in the American South. This powerful novel explores themes of morality, prejudice, and the loss of innocence.",
         ownerId: user2.id,
-        image: null,
+        image: "https://covers.openlibrary.org/b/isbn/9780486282114-L.jpg",
+        location: "New York, NY",
         isAvailable: true,
       },
       {
@@ -96,7 +98,8 @@ export async function seedDatabase() {
         condition: "Good" as const,
         description: "Epic space opera about politics and ecology on the desert planet Arrakis. A masterwork of science fiction that explores themes of power, religion, and environmental consciousness.",
         ownerId: user1.id,
-        image: null,
+        image: "https://covers.openlibrary.org/b/isbn/9780525559474-L.jpg",
+        location: "San Francisco, CA",
         isAvailable: true,
       },
       {
@@ -107,7 +110,8 @@ export async function seedDatabase() {
         condition: "New" as const,
         description: "A captivating novel about a reclusive Hollywood icon who finally decides to tell her story to an unknown journalist.",
         ownerId: user3.id,
-        image: null,
+        image: "https://covers.openlibrary.org/b/isbn/9780307474278-L.jpg",
+        location: "Los Angeles, CA",
         isAvailable: true,
       },
       {
@@ -118,7 +122,8 @@ export async function seedDatabase() {
         condition: "Good" as const,
         description: "Transform your life with tiny changes in this practical guide to building good habits and breaking bad ones.",
         ownerId: user4.id,
-        image: null,
+        image: "https://covers.openlibrary.org/b/isbn/9780735211292-L.jpg",
+        location: "Chicago, IL",
         isAvailable: true,
       },
       {
@@ -129,7 +134,8 @@ export async function seedDatabase() {
         condition: "Good" as const,
         description: "A novel about infinite possibilities and the lives we might have lived. Between life and death there is a library.",
         ownerId: user3.id,
-        image: null,
+        image: "https://covers.openlibrary.org/b/isbn/9780316769174-L.jpg",
+        location: "Los Angeles, CA",
         isAvailable: true,
       },
       {
@@ -140,7 +146,8 @@ export async function seedDatabase() {
         condition: "Worn" as const,
         description: "A powerful memoir about education, family, and the struggle for self-invention. A coming-of-age story that is both heartbreaking and inspiring.",
         ownerId: user4.id,
-        image: null,
+        image: "https://covers.openlibrary.org/b/isbn/9780804139038-L.jpg",
+        location: "Chicago, IL",
         isAvailable: true,
       },
       {
@@ -151,7 +158,8 @@ export async function seedDatabase() {
         condition: "Good" as const,
         description: "A dystopian masterpiece about totalitarianism and the power of language. More relevant today than ever before.",
         ownerId: user2.id,
-        image: null,
+        image: "https://covers.openlibrary.org/b/isbn/9780593099322-L.jpg",
+        location: "New York, NY",
         isAvailable: false, // This one is being exchanged
       },
       // Additional books for exchange history
@@ -163,7 +171,8 @@ export async function seedDatabase() {
         condition: "Good" as const,
         description: "A romantic novel about Elizabeth Bennet and Mr. Darcy. A timeless classic exploring themes of love, class, and social expectations.",
         ownerId: user3.id,
-        image: null,
+        image: "https://covers.openlibrary.org/b/isbn/9781501127625-L.jpg",
+        location: "Los Angeles, CA",
         isAvailable: false, // Exchanged
       },
       {
@@ -174,7 +183,8 @@ export async function seedDatabase() {
         condition: "Worn" as const,
         description: "A controversial coming-of-age novel about Holden Caulfield. A powerful exploration of teenage alienation and the loss of innocence.",
         ownerId: user4.id,
-        image: null,
+        image: "https://covers.openlibrary.org/b/isbn/9780440212560-L.jpg",
+        location: "Chicago, IL",
         isAvailable: false, // Exchanged
       },
       {
@@ -185,7 +195,8 @@ export async function seedDatabase() {
         condition: "Good" as const,
         description: "The first book in the beloved Harry Potter series. A magical adventure that captivated readers of all ages.",
         ownerId: user1.id,
-        image: null,
+        image: "https://covers.openlibrary.org/b/isbn/9780743273565-L.jpg",
+        location: "San Francisco, CA",
         isAvailable: false, // Exchanged
       },
       {
@@ -196,7 +207,8 @@ export async function seedDatabase() {
         condition: "New" as const,
         description: "Epic fantasy trilogy about the quest to destroy the One Ring. A masterpiece of world-building and storytelling.",
         ownerId: user2.id,
-        image: null,
+        image: "https://covers.openlibrary.org/b/isbn/9781400079988-L.jpg",
+        location: "New York, NY",
         isAvailable: false, // Exchanged
       },
     ];

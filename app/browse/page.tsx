@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Search } from "lucide-react"
 import BookCard from "@/components/BookCard"
 import AuthWrapper from "@/components/AuthWrapper"
@@ -17,11 +17,7 @@ export default function Browse() {
   const [currentPage, setCurrentPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
 
-  useEffect(() => {
-    fetchBooks()
-  }, [searchTerm, selectedGenre, selectedCondition, currentPage])
-
-  const fetchBooks = async () => {
+  const fetchBooks = useCallback(async () => {
     setIsLoading(true)
     setError(null)
 
@@ -45,7 +41,11 @@ export default function Browse() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [searchTerm, selectedGenre, selectedCondition, currentPage])
+
+  useEffect(() => {
+    fetchBooks()
+  }, [fetchBooks])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()

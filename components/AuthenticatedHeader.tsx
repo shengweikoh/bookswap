@@ -115,7 +115,7 @@ export default function AuthenticatedHeader() {
                     className="flex items-center space-x-2 px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
                   >
                     <List className="h-4 w-4" />
-                    <span>My Postings</span>
+                    <span>My Listings</span>
                   </Link>
                   <Link
                     href="/my-chats"

@@ -2,23 +2,36 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { BookOpen } from "lucide-react"
 import AuthWrapper from "@/components/AuthWrapper"
 import { apiService } from "@/lib/api"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function AddBook() {
   const router = useRouter()
+  const { user } = useAuth()
   const [formData, setFormData] = useState({
     title: "",
     author: "",
     genre: "",
     condition: "",
     description: "",
+    location: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+
+  // Set default location from user profile when component mounts
+  useEffect(() => {
+    if (user?.location) {
+      setFormData(prev => ({
+        ...prev,
+        location: user.location || ""
+      }))
+    }
+  }, [user])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({
@@ -153,6 +166,24 @@ export default function AddBook() {
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="location" className="block text-sm font-medium text-gray-300 mb-2">
+                Location
+              </label>
+              <input
+                id="location"
+                name="location"
+                type="text"
+                value={formData.location}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="Where is this book located?"
+              />
+              <p className="mt-1 text-sm text-gray-400">
+                {user?.location ? `Defaults to your profile location: ${user.location}` : "Add a location to help potential exchangers"}
+              </p>
             </div>
 
             <div>

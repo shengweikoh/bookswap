@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, Suspense } from "react"
+import { useState, useEffect, useRef, useCallback, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { ArrowLeft, Send, Search, Clock, MessageCircle } from "lucide-react"
@@ -60,75 +60,7 @@ function MyChatContent() {
   const ownerId = searchParams.get("ownerId")
   const chatId = searchParams.get("chatId")
 
-  useEffect(() => {
-    // Only fetch chats when authentication is complete and user is authenticated
-    if (!authLoading && isAuthenticated && user) {
-      fetchChats()
-    } else if (!authLoading && !isAuthenticated) {
-      // Authentication complete but user is not authenticated, stop loading
-      setLoading(false)
-    }
-    // Don't do anything if authLoading is true (still checking authentication)
-  }, [authLoading, isAuthenticated, user])
-
-  useEffect(() => {
-    if (selectedChat && isAuthenticated && user) {
-      // Mark conversation as switching and data as not ready
-      setConversationSwitching(true)
-      setChatDataReady(false)
-      setUserDataValidated(false)
-      
-      // Clear existing data when switching chats to prevent showing stale data
-      setMessages([])
-      setExchangeRequest(null)
-      setExchangeRequestLoading(false)
-      setBookInfo(null)
-      setBookInfoLoading(false)
-      
-      // Step 1: Validate user data is properly loaded
-      const validateUserData = async () => {
-        try {
-          // Double-check that user data is complete and consistent
-          if (!user.id || !isAuthenticated) {
-            throw new Error('User data incomplete')
-          }
-          
-          // Add a small delay to ensure user state is stable
-          await new Promise(resolve => setTimeout(resolve, 50))
-          
-          setUserDataValidated(true)
-          
-          // Step 2: After user validation, fetch chat data
-          await Promise.all([
-            fetchMessages(selectedChat.id),
-            fetchExchangeRequest(selectedChat.bookId),
-            fetchBookInfo(selectedChat.bookId)
-          ])
-          
-        } catch (error) {
-          console.error('Error during conversation switch:', error)
-        } finally {
-          // Mark all data as ready
-          setChatDataReady(true)
-          setConversationSwitching(false)
-        }
-      }
-      
-      validateUserData()
-      
-    } else {
-      // Reset states when no chat is selected
-      setChatDataReady(false)
-      setUserDataValidated(false)
-      setConversationSwitching(false)
-    }
-  }, [selectedChat, isAuthenticated, user])
-
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages])
-
-  const fetchChats = async () => {
+  const fetchChats = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -215,7 +147,76 @@ function MyChatContent() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [isAuthenticated, user, chatId, bookId, ownerId])
+
+  useEffect(() => {
+    // Only fetch chats when authentication is complete and user is authenticated
+    if (!authLoading && isAuthenticated && user) {
+      fetchChats()
+    } else if (!authLoading && !isAuthenticated) {
+      // Authentication complete but user is not authenticated, stop loading
+      setLoading(false)
+    }
+    // Don't do anything if authLoading is true (still checking authentication)
+  }, [authLoading, isAuthenticated, user, fetchChats])
+
+  useEffect(() => {
+    if (selectedChat && isAuthenticated && user) {
+      // Mark conversation as switching and data as not ready
+      setConversationSwitching(true)
+      setChatDataReady(false)
+      setUserDataValidated(false)
+      
+      // Clear existing data when switching chats to prevent showing stale data
+      setMessages([])
+      setExchangeRequest(null)
+      setExchangeRequestLoading(false)
+      setBookInfo(null)
+      setBookInfoLoading(false)
+      
+      // Step 1: Validate user data is properly loaded
+      const validateUserData = async () => {
+        try {
+          // Double-check that user data is complete and consistent
+          if (!user.id || !isAuthenticated) {
+            throw new Error('User data incomplete')
+          }
+          
+          // Add a small delay to ensure user state is stable
+          await new Promise(resolve => setTimeout(resolve, 50))
+          
+          setUserDataValidated(true)
+          
+          // Step 2: After user validation, fetch chat data
+          await Promise.all([
+            fetchMessages(selectedChat.id),
+            fetchExchangeRequest(selectedChat.bookId),
+            fetchBookInfo(selectedChat.bookId)
+          ])
+          
+        } catch (error) {
+          console.error('Error during conversation switch:', error)
+        } finally {
+          // Mark all data as ready
+          setChatDataReady(true)
+          setConversationSwitching(false)
+        }
+      }
+      
+      validateUserData()
+      
+    } else {
+      // Reset states when no chat is selected
+      setChatDataReady(false)
+      setUserDataValidated(false)
+      setConversationSwitching(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedChat, isAuthenticated, user])
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
 
   const retryFetch = () => {
     fetchChats()

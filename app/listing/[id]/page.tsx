@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -18,14 +18,12 @@ export default function ListingDetails() {
   const [ownerBooks, setOwnerBooks] = useState<BookWithOwner[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [imageError, setImageError] = useState(false)
+  const [ownerImageErrors, setOwnerImageErrors] = useState<{[key: string]: boolean}>({})
 
   const bookId = params.id as string
 
-  useEffect(() => {
-    fetchBookDetails()
-  }, [bookId])
-
-  const fetchBookDetails = async () => {
+  const fetchBookDetails = useCallback(async () => {
     try {
       setLoading(true)
       const result = await apiService.getBookById(bookId)
@@ -52,7 +50,11 @@ export default function ListingDetails() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [bookId])
+
+  useEffect(() => {
+    fetchBookDetails()
+  }, [fetchBookDetails])
 
   if (loading) {
     return (
@@ -147,11 +149,12 @@ export default function ListingDetails() {
             <div className="flex justify-center items-center">
               <div className="relative">
                 <Image
-                  src={book.image || "/images/books/placeholder.svg"}
+                  src={imageError || !book.image ? "/images/books/placeholder.svg" : book.image}
                   alt={book.title}
                   width={300}
                   height={400}
                   className="rounded-lg object-cover"
+                  onError={() => setImageError(true)}
                 />
               </div>
             </div>
@@ -197,7 +200,7 @@ export default function ListingDetails() {
                 <h3 className="text-lg font-semibold text-white mb-3">Owner Information</h3>
                 <div className="flex items-center space-x-4 mb-4">
                   <Image
-                    src={book.image || "/images/avatars/default-avatar.svg"}
+                    src={book.ownerAvatar || "/images/avatars/default-avatar.svg"}
                     alt={book.owner}
                     width={60}
                     height={60}
@@ -208,7 +211,7 @@ export default function ListingDetails() {
                     <div className="flex items-center space-x-4 text-sm text-gray-400 mt-1">
                       <div className="flex items-center space-x-1">
                         <MapPin className="h-4 w-4" />
-                        <span>Location not specified</span>
+                        <span>{book.location || "Location not specified"}</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Calendar className="h-4 w-4" />
@@ -291,11 +294,12 @@ export default function ListingDetails() {
                 >
                   <div className="aspect-[3/4] bg-gray-700 rounded-md mb-3">
                     <Image
-                      src={ownerBook.image || "/images/books/placeholder.svg"}
+                      src={ownerImageErrors[ownerBook.id] || !ownerBook.image ? "/images/books/placeholder.svg" : ownerBook.image}
                       alt={ownerBook.title}
                       width={150}
                       height={200}
                       className="w-full h-full object-cover rounded-md"
+                      onError={() => setOwnerImageErrors(prev => ({...prev, [ownerBook.id]: true}))}
                     />
                   </div>
                   <h4 className="font-medium text-white text-sm mb-1">{ownerBook.title}</h4>

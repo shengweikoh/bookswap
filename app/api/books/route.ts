@@ -21,12 +21,13 @@ export const GET = withAuth(async (req: AuthenticatedRequest) => {
 
     // Add owner information to books
     const booksWithOwners: BookWithOwner[] = await Promise.all(
-      allBooks.map(async (book: Book): Promise<BookWithOwner> => {
+      allBooks.map(async (book): Promise<BookWithOwner> => {
         const owner = await getUserById(book.ownerId)
         return {
           ...book,
           owner: owner ? owner.name : "Unknown",
-        }
+          ownerAvatar: owner ? owner.avatar : null,
+        } as BookWithOwner
       })
     )
 
@@ -48,7 +49,7 @@ export const GET = withAuth(async (req: AuthenticatedRequest) => {
 
 export const POST = withAuth(async (req: AuthenticatedRequest) => {
   try {
-    const { title, author, genre, condition, description, image } = await req.json()
+    const { title, author, genre, condition, description, image, location } = await req.json()
 
     if (!title || !author || !genre || !condition) {
       return NextResponse.json({ error: "Title, author, genre, and condition are required" }, { status: 400 })
@@ -62,6 +63,7 @@ export const POST = withAuth(async (req: AuthenticatedRequest) => {
       description: description || "",
       ownerId: req.user!.id,
       image,
+      location,
       isAvailable: true,
     })
 

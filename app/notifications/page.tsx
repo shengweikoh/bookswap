@@ -116,7 +116,7 @@ export default function Notifications() {
           <div className="text-center py-12">
             <Bell className="h-16 w-16 text-gray-600 mx-auto mb-4" />
             <p className="text-gray-400 text-lg mb-4">No notifications yet</p>
-            <p className="text-gray-500">When you start exchanging books, you'll see notifications here.</p>
+            <p className="text-gray-500">When you start exchanging books, you&apos;ll see notifications here.</p>
           </div>
         ) : (
           <>

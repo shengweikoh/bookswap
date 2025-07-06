@@ -86,7 +86,7 @@ export default function RecentSwaps() {
                   />
                   <div>
                     <p className="font-medium text-white">{swap.owner?.name || "Owner"}</p>
-                    <p className="text-sm text-gray-300">for "{swap.book?.title || "Book"}"</p>
+                    <p className="text-sm text-gray-300">for &quot;{swap.book?.title || "Book"}&quot;</p>
                   </div>
                 </div>
               </div>
