@@ -53,7 +53,13 @@ function MyChatContent() {
   const [userDataValidated, setUserDataValidated] = useState(false)
   const [conversationSwitching, setConversationSwitching] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isClient, setIsClient] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Handle client-side hydration
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   // Get chat parameters from URL (when coming from listing page or chat dropdown)
   const bookId = searchParams.get("bookId")
@@ -403,11 +409,11 @@ function MyChatContent() {
       // Update chat's last message
       const updatedChats = chats.map(chat => 
         chat.id === selectedChat.id 
-          ? { ...chat, lastMessage: messageData.message, lastMessageTime: new Date() }
+          ? { ...chat, lastMessage: messageData.message, lastMessageTime: new Date(messageData.createdAt) }
           : chat
       )
       setChats(updatedChats)
-      setSelectedChat({ ...selectedChat, lastMessage: messageData.message, lastMessageTime: new Date() })
+      setSelectedChat({ ...selectedChat, lastMessage: messageData.message, lastMessageTime: new Date(messageData.createdAt) })
 
     } catch (error) {
       console.error("Failed to send message:", error)
@@ -566,7 +572,8 @@ function MyChatContent() {
 
     // Step 4: Exchange request status is "pending" - check if current user is the requester
     if (exchangeRequest.status === 'pending') {
-      const isRequester = exchangeRequest.requesterId === user.id
+      // Only check user ID after client hydration to prevent hydration mismatch
+      const isRequester = isClient && user ? exchangeRequest.requesterId === user.id : false
 
       if (isRequester) {
         // Current user is the requester - show yellow "Exchange Requested" button
@@ -603,7 +610,7 @@ function MyChatContent() {
     return null
   }
 
-  if (authLoading || loading) {
+  if (authLoading || loading || !isClient) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-white text-center">
@@ -719,7 +726,7 @@ function MyChatContent() {
                             </Link>
                             <div className="flex items-center space-x-1 text-xs text-gray-400">
                               <Clock className="h-3 w-3" />
-                              <span>{formatTimeAgo(chat.lastMessageTime)}</span>
+                              <span>{isClient ? formatTimeAgo(chat.lastMessageTime) : 'Just now'}</span>
                             </div>
                           </div>
                           <p className="text-xs text-gray-400 mb-1 truncate">
@@ -808,7 +815,8 @@ function MyChatContent() {
                       </div>
                     ) : (
                       messages.map((message) => {
-                        const isCurrentUser = message.senderId === user?.id
+                        // Only determine message alignment after client-side hydration to prevent hydration mismatch
+                        const isCurrentUser = isClient && user ? message.senderId === user.id : false
                         
                         return (
                           <div
@@ -828,7 +836,7 @@ function MyChatContent() {
                               <p className={`text-xs mt-1 ${
                                 isCurrentUser ? 'text-emerald-200' : 'text-gray-400'
                               }`}>
-                                {formatTimeAgo(message.timestamp)}
+                                {isClient ? formatTimeAgo(message.timestamp) : 'Just now'}
                               </p>
                             </div>
                           </div>

@@ -28,8 +28,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
+    // Mark as hydrated on client side
+    setIsHydrated(true)
+    
     // Check if user is logged in on app start
     const currentUser = apiService.getCurrentUser()
     if (currentUser && apiService.isAuthenticated()) {
@@ -63,8 +67,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = {
     user,
-    isAuthenticated: !!user,
-    isLoading,
+    isAuthenticated: isHydrated && !!user,
+    isLoading: isLoading || !isHydrated,
     login,
     signup,
     logout,

@@ -44,8 +44,12 @@ export default function YouMayLike() {
           book.ownerId !== currentUserId // Exclude user's own books
         )
         
-        // Shuffle array and take first 6 books
-        const shuffled = uniqueBooks.sort(() => Math.random() - 0.5)
+        // Use a deterministic shuffle based on book IDs to avoid hydration issues
+        const shuffled = [...uniqueBooks].sort((a, b) => {
+          const aHash = a.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+          const bHash = b.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+          return (aHash % 3) - (bHash % 3)
+        })
         setBooks(shuffled.slice(0, 6))
       } else {
         // Fallback: get random available books if user has no interested genres

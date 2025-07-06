@@ -1,17 +1,16 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+
+import { useState, useEffect } from "react"
 import { X, Send, Paperclip, Smile } from "lucide-react"
 import Image from "next/image"
-import Link from "next/link"
 
 interface ChatModalProps {
   isOpen: boolean
   onClose: () => void
-  ownerId: string
   ownerName: string
-  ownerAvatar: string | null
+  ownerAvatar: string
   bookTitle: string
 }
 
@@ -22,16 +21,29 @@ interface Message {
   timestamp: Date
 }
 
-export default function ChatModal({ isOpen, onClose, ownerId, ownerName, ownerAvatar, bookTitle }: ChatModalProps) {
+export default function ChatModal({ isOpen, onClose, ownerName, ownerAvatar, bookTitle }: ChatModalProps) {
   const [message, setMessage] = useState("")
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      sender: "owner",
-      content: `Hi! Thanks for your interest in "${bookTitle}". I'd be happy to discuss an exchange with you.`,
-      timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-    },
-  ])
+  const [messages, setMessages] = useState<Message[]>([])
+  const [isClient, setIsClient] = useState(false)
+
+  // Handle client-side hydration
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  // Initialize messages only on client side to avoid hydration mismatch
+  useEffect(() => {
+    if (isClient && messages.length === 0) {
+      setMessages([
+        {
+          id: "1",
+          sender: "owner",
+          content: `Hi! Thanks for your interest in "${bookTitle}". I'd be happy to discuss an exchange with you.`,
+          timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+        },
+      ])
+    }
+  }, [isClient, bookTitle, messages.length])
 
   if (!isOpen) return null
 
@@ -79,19 +91,14 @@ export default function ChatModal({ isOpen, onClose, ownerId, ownerName, ownerAv
           <div className="flex items-center justify-between p-4 border-b border-gray-700">
             <div className="flex items-center space-x-3">
               <Image
-                src={ownerAvatar || "/images/avatars/default-avatar.svg"}
+                src={ownerAvatar || "/placeholder.svg"}
                 alt={ownerName}
                 width={40}
                 height={40}
                 className="rounded-full"
               />
               <div>
-                <Link 
-                  href={`/profile?userId=${ownerId}`}
-                  className="font-medium text-white hover:text-emerald-400 transition-colors"
-                >
-                  {ownerName}
-                </Link>
+                <h3 className="font-medium text-white">{ownerName}</h3>
                 <p className="text-sm text-gray-400">About &quot;{bookTitle}&quot;</p>
               </div>
             </div>
@@ -111,7 +118,7 @@ export default function ChatModal({ isOpen, onClose, ownerId, ownerName, ownerAv
                 >
                   <p className="text-sm">{msg.content}</p>
                   <p className={`text-xs mt-1 ${msg.sender === "user" ? "text-emerald-200" : "text-gray-500"}`}>
-                    {formatTime(msg.timestamp)}
+                    {isClient ? formatTime(msg.timestamp) : 'Just now'}
                   </p>
                 </div>
               </div>

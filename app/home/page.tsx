@@ -59,7 +59,7 @@ export default function Home() {
         setUserStats({
           booksListed,
           successfulSwaps,
-          communityRank: Math.floor(Math.random() * 100) + 1, // Placeholder until we implement ranking
+          communityRank: Math.max(1, (booksListed * 10) + (successfulSwaps * 20) + 1), // Deterministic rank based on activity
         })
       }
     } catch (error) {
